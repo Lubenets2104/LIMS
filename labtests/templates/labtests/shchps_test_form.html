@@ -1,0 +1,367 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений (ЩПС {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        input[type="number"], input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            height: 35px;
+        }
+        
+        input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .input-alert {
+            background-color: #ffcccc !important;
+            border-color: #ff0000 !important;
+        }
+        
+        .info-table {
+            margin-bottom: 30px;
+        }
+        
+        .info-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            width: 30%;
+            background-color: #f8f9fa;
+        }
+        
+        .info-table input {
+            text-align: left;
+            padding-left: 10px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        
+        .section-footer {
+            text-align: right;
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Убираем стрелки в числовых полях */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лист измерений (ЩПС {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</h1>
+        
+        <!-- Информация об образце -->
+        <table class="info-table">
+            <tr>
+                <td>Номер:</td>
+                <td><input type="text" value="{{ sample.sample_number }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата отбора:</td>
+                <td><input type="text" value="{{ sample.sampling_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Заказчик:</td>
+                <td><input type="text" value="{{ sample.customer }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию:</td>
+                <td><input type="text" value="{{ sample.received_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование материала:</td>
+                <td><input type="text" value="ЩПС" readonly></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала:</td>
+                <td><input type="text" value="{{ sample.supplier }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование смеси:</td>
+                <td><input type="text" value="{{ sample.mix.name }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта:</td>
+                <td><input type="text" value="{{ sample.object_name }}" readonly></td>
+            </tr>
+        </table>
+        
+        <form method="post" action="{% url 'sample_shchps_test_form' sample.pk %}" id="shchps-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            <!-- СОДЕРЖАНИЕ ПЫЛЕВИДНЫХ И ГЛИНИСТЫХ ЧАСТИЦ -->
+            <h2>Содержание пылевидных и глинистых частиц</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса начальная, гр</td>
+                        <td><input type="number" step="0.1" name="dust_initial_weight" id="dust_initial_weight" value="{{ test_result.dust_initial_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса после промывки, гр</td>
+                        <td><input type="number" step="0.1" name="dust_after_wash_weight" id="dust_after_wash_weight" value="{{ test_result.dust_after_wash_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Содержание п/г, %</td>
+                        <td><input type="number" step="0.1" name="dust_clay_content" id="dust_clay_content" value="{{ test_result.dust_clay_content|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ЗЕРНОВОЙ СОСТАВ СМЕСИ -->
+            <h2>Зерновой состав смеси</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Сито, мм</th>
+                        <th>40</th>
+                        <th>20</th>
+                        <th>10</th>
+                        <th>5</th>
+                        <th>2.5</th>
+                        <th>0.63</th>
+                        <th>0.16</th>
+                        <th>0.05</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса, г</td>
+                        <td><input type="number" step="0.1" name="sieve_40_weight" id="sieve_40_weight" value="{{ test_result.sieve_40_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_20_weight" id="sieve_20_weight" value="{{ test_result.sieve_20_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_10_weight" id="sieve_10_weight" value="{{ test_result.sieve_10_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_5_weight" id="sieve_5_weight" value="{{ test_result.sieve_5_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_2_5_weight" id="sieve_2_5_weight" value="{{ test_result.sieve_2_5_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_0_63_weight" id="sieve_0_63_weight" value="{{ test_result.sieve_0_63_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_0_16_weight" id="sieve_0_16_weight" value="{{ test_result.sieve_0_16_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_0_05_weight" id="sieve_0_05_weight" value="{{ test_result.sieve_0_05_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Частный остаток</td>
+                        <td><input type="number" step="0.1" name="sieve_40_partial" id="sieve_40_partial" value="{{ test_result.sieve_40_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_20_partial" id="sieve_20_partial" value="{{ test_result.sieve_20_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_10_partial" id="sieve_10_partial" value="{{ test_result.sieve_10_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_5_partial" id="sieve_5_partial" value="{{ test_result.sieve_5_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_2_5_partial" id="sieve_2_5_partial" value="{{ test_result.sieve_2_5_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_63_partial" id="sieve_0_63_partial" value="{{ test_result.sieve_0_63_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_16_partial" id="sieve_0_16_partial" value="{{ test_result.sieve_0_16_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_05_partial" id="sieve_0_05_partial" value="{{ test_result.sieve_0_05_partial|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Полный остаток</td>
+                        <td><input type="number" step="0.1" name="sieve_40_full" id="sieve_40_full" value="{{ test_result.sieve_40_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_20_full" id="sieve_20_full" value="{{ test_result.sieve_20_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_10_full" id="sieve_10_full" value="{{ test_result.sieve_10_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_5_full" id="sieve_5_full" value="{{ test_result.sieve_5_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_2_5_full" id="sieve_2_5_full" value="{{ test_result.sieve_2_5_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_63_full" id="sieve_0_63_full" value="{{ test_result.sieve_0_63_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_16_full" id="sieve_0_16_full" value="{{ test_result.sieve_0_16_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_0_05_full" id="sieve_0_05_full" value="{{ test_result.sieve_0_05_full|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Требования ГОСТ</td>
+                        <td>0 - 10</td>
+                        <td>20 - 40</td>
+                        <td>35 - 60</td>
+                        <td>45 - 70</td>
+                        <td>55 - 80</td>
+                        <td>70 - 90</td>
+                        <td>75 - 92</td>
+                        <td>80 - 93</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ДРОБИМОСТЬ -->
+            <h2>Дробимость</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Фракция щебня</th>
+                        <th>40-70</th>
+                        <th>20-40</th>
+                        <th>10-20</th>
+                        <th>5-10</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса начальная, гр</td>
+                        <td><input type="number" step="0.1" name="fragility_40_70_initial" id="fragility_40_70_initial" value="{{ test_result.fragility_40_70_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_20_40_initial" id="fragility_20_40_initial" value="{{ test_result.fragility_20_40_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_10_20_initial" id="fragility_10_20_initial" value="{{ test_result.fragility_10_20_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_5_10_initial" id="fragility_5_10_initial" value="{{ test_result.fragility_5_10_initial|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса зерен оставшихся после дробления, гр</td>
+                        <td><input type="number" step="0.1" name="fragility_40_70_after" id="fragility_40_70_after" value="{{ test_result.fragility_40_70_after|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_20_40_after" id="fragility_20_40_after" value="{{ test_result.fragility_20_40_after|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_10_20_after" id="fragility_10_20_after" value="{{ test_result.fragility_10_20_after|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="fragility_5_10_after" id="fragility_5_10_after" value="{{ test_result.fragility_5_10_after|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Дробимость, %</td>
+                        <td><input type="number" step="0.1" name="fragility_40_70_value" id="fragility_40_70_value" value="{{ test_result.fragility_40_70_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="fragility_20_40_value" id="fragility_20_40_value" value="{{ test_result.fragility_20_40_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="fragility_10_20_value" id="fragility_10_20_value" value="{{ test_result.fragility_10_20_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="fragility_5_10_value" id="fragility_5_10_value" value="{{ test_result.fragility_5_10_value|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tr>
+                    <td style="text-align: left; font-weight: bold; width: 50%;">Суммарная дробимость</td>
+                    <td><input type="number" step="0.1" name="fragility_summary" id="fragility_summary" value="{{ test_result.fragility_summary|format_float }}" readonly></td>
+                </tr>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ЛЕЩАДНОСТЬ -->
+            <h2>Лещадность</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Фракция щебня</th>
+                        <th>40-70</th>
+                        <th>20-40</th>
+                        <th>10-20</th>
+                        <th>5-10</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса начальная, гр</td>
+                        <td><input type="number" step="0.1" name="flakiness_40_70_initial" id="flakiness_40_70_initial" value="{{ test_result.flakiness_40_70_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_20_40_initial" id="flakiness_20_40_initial" value="{{ test_result.flakiness_20_40_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_10_20_initial" id="flakiness_10_20_initial" value="{{ test_result.flakiness_10_20_initial|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_5_10_initial" id="flakiness_5_10_initial" value="{{ test_result.flakiness_5_10_initial|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса лещадных зерен, гр</td>
+                        <td><input type="number" step="0.1" name="flakiness_40_70_flaky" id="flakiness_40_70_flaky" value="{{ test_result.flakiness_40_70_flaky|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_20_40_flaky" id="flakiness_20_40_flaky" value="{{ test_result.flakiness_20_40_flaky|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_10_20_flaky" id="flakiness_10_20_flaky" value="{{ test_result.flakiness_10_20_flaky|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="flakiness_5_10_flaky" id="flakiness_5_10_flaky" value="{{ test_result.flakiness_5_10_flaky|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Лещадность, %</td>
+                        <td><input type="number" step="0.1" name="flakiness_40_70_value" id="flakiness_40_70_value" value="{{ test_result.flakiness_40_70_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="flakiness_20_40_value" id="flakiness_20_40_value" value="{{ test_result.flakiness_20_40_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="flakiness_10_20_value" id="flakiness_10_20_value" value="{{ test_result.flakiness_10_20_value|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="flakiness_5_10_value" id="flakiness_5_10_value" value="{{ test_result.flakiness_5_10_value|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tr>
+                    <td style="text-align: left; font-weight: bold; width: 50%;">Суммарная лещадность</td>
+                    <td><input type="number" step="0.1" name="flakiness_summary" id="flakiness_summary" value="{{ test_result.flakiness_summary|format_float }}" readonly></td>
+                </tr>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn-save">Сохранить</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- JavaScript для расчетов -->
+    <script src="{% static 'js/shchps_calculations.js' %}"></script>
+</body>
+</html>

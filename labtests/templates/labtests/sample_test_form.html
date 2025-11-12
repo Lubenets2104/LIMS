@@ -1,0 +1,566 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений - {{ sample.material.name }} по {{ sample.gost.number }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th:has(input) {
+            padding:0px;
+            height:10px;
+        }
+
+        td:has(input) {
+            padding: 0px;
+        }
+
+        input {
+            width: 100%;
+            text-align: center;
+            height: 3rem;
+            border: none;
+            outline: none;
+        }
+
+        input[readonly]{
+            background-color: #f5f5f5;
+            border: 1px;
+            pointer-events: none;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        h5 {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-alert {
+            background-color: #ffcccc !important;
+        }
+
+        .btn-result {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .btn-save {
+            border:2px solid #80ff80
+        }
+        
+        .btn-save:hover {
+            background-color: #80ff80;
+        }
+        
+        .btn-cancel {
+            border:2px solid #ff9999
+        }
+        
+        .btn-cancel:hover {
+            background-color: #ff9999;
+        }
+
+        .text-right {
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .header-info td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .header-info input {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        select.form-control {
+            height: 3rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0 10px;
+            width: 200px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Лист измерений ({{ sample.material.name }} по {{ sample.gost.number }})</h1>
+    
+    <table class="header-info">
+        <tbody>
+            <tr>
+                <td>Номер</td>
+                <td><input type="text" disabled value="{{ sample.sample_number }}"></td>
+            </tr>
+            <tr>
+                <td>Дата отбора</td>
+                <td><input type="date" disabled value="{{ sample.sampling_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Заказчик</td>
+                <td><input type="text" disabled value="{{ sample.customer }}"></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию</td>
+                <td><input type="date" disabled value="{{ sample.received_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование материала</td>
+                <td><input type="text" value="{{ sample.material.name }}" disabled></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала</td>
+                <td><input type="text" disabled value="{{ sample.supplier }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта</td>
+                <td><input type="text" disabled value="{{ sample.object_name }}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Индикатор статуса заполнения -->
+    <div id="form-status-indicator"></div>
+    
+    <!-- Индикатор автосохранения -->
+    <div id="autosave-indicator" style="position: fixed; top: 10px; right: 10px; padding: 10px; background: #28a745; color: white; border-radius: 5px; display: none; z-index: 1000;">
+        <i class="bi bi-check-circle"></i> Данные сохранены
+    </div>
+    
+    <form id="result" method="post">
+        {% csrf_token %}
+        
+        <!-- Скрытые поля для readonly значений -->
+        <input type="hidden" name="grain_8_percent" id="grain_8_percent_hidden">
+        <input type="hidden" name="grain_4_percent" id="grain_4_percent_hidden">
+        <input type="hidden" name="dust_percent" id="dust_percent_hidden">
+        <input type="hidden" name="sieve_2_partial" id="sieve_2_partial_hidden">
+        <input type="hidden" name="sieve_1_partial" id="sieve_1_partial_hidden">
+        <input type="hidden" name="sieve_05_partial" id="sieve_05_partial_hidden">
+        <input type="hidden" name="sieve_025_partial" id="sieve_025_partial_hidden">
+        <input type="hidden" name="sieve_0125_partial" id="sieve_0125_partial_hidden">
+        <input type="hidden" name="sieve_2_full" id="sieve_2_full_hidden">
+        <input type="hidden" name="sieve_1_full" id="sieve_1_full_hidden">
+        <input type="hidden" name="sieve_05_full" id="sieve_05_full_hidden">
+        <input type="hidden" name="sieve_025_full" id="sieve_025_full_hidden">
+        <input type="hidden" name="sieve_0125_full" id="sieve_0125_full_hidden">
+        <input type="hidden" name="size_module_value" id="size_module_value_hidden">
+        <input type="hidden" name="size_module_name" id="size_module_name_hidden">
+        <input type="hidden" name="clay_percent" id="clay_percent_hidden">
+        <input type="hidden" name="humidity_1_value" id="humidity_1_value_hidden">
+        <input type="hidden" name="humidity_2_value" id="humidity_2_value_hidden">
+        <input type="hidden" name="humidity_average" id="humidity_average_hidden">
+        <input type="hidden" name="clay_swell_1_k" id="clay_swell_1_k_hidden">
+        <input type="hidden" name="clay_swell_2_k" id="clay_swell_2_k_hidden">
+        <input type="hidden" name="clay_swell_average_k" id="clay_swell_average_k_hidden">
+        <input type="hidden" name="clay_swell_content" id="clay_swell_content_hidden">
+        <input type="hidden" name="clay_swell_conclusion" id="clay_swell_conclusion_hidden">
+        <input type="hidden" name="bulk_1_density" id="bulk_1_density_hidden">
+        <input type="hidden" name="bulk_2_density" id="bulk_2_density_hidden">
+        <input type="hidden" name="bulk_average_density" id="bulk_average_density_hidden">
+        <input type="hidden" name="actual_1_density" id="actual_1_density_hidden">
+        <input type="hidden" name="actual_2_density" id="actual_2_density_hidden">
+        <input type="hidden" name="actual_average_density" id="actual_average_density_hidden">
+        <input type="hidden" name="emptiness" id="emptiness_hidden">
+        
+        <select class="form-control" name="result_class" id="result_class">
+            <option value="I класс" {% if test_result.result_class == 'I класс' %}selected{% endif %}>I класс</option>
+            <option value="II класс" {% if test_result.result_class == 'II класс' %}selected{% endif %}>II класс</option>
+        </select>
+
+        <h2>Зерновой состав и модуль крупности</h2>
+        <h5>Содержание частиц крупнее 8 и 4 мм</h5>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td colspan="2"><input type="text" pattern="[0-9]*[.,]?[0-9]*" name="grain_initial_weight" id="grain_initial_weight" value="{{ test_result.grain_initial_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Сито, мм</td>
+                    <td>8</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>Масса, гр</td>
+                    <td><input type="text" pattern="[0-9]*[.,]?[0-9]*" name="grain_8_weight" id="grain_8_weight" value="{{ test_result.grain_8_weight|default_if_none:'' }}"></td>
+                    <td><input type="text" pattern="[0-9]*[.,]?[0-9]*" name="grain_4_weight" id="grain_4_weight" value="{{ test_result.grain_4_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Остаток, %</td>
+                    <td><input type="text" readonly id="grain_8_percent" value="{{ test_result.grain_8_percent|default_if_none:'' }}"></td>
+                    <td><input type="text" readonly id="grain_4_percent" value="{{ test_result.grain_4_percent|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Содержание пылевидных и глинистых частиц</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="text" step="any" name="dust_initial_weight" id="dust_initial_weight" value="{{ test_result.dust_initial_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса после промывки, гр</td>
+                    <td><input type="text" step="any" name="dust_after_weight" id="dust_after_weight" value="{{ test_result.dust_after_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание п/г, %</td>
+                    <td><input type="text" step="any" readonly id="dust_percent" value="{{ test_result.dust_percent|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Зерновой состав</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Сито, мм</th>
+                    <th><input type="text" readonly value="2"></th>
+                    <th><input type="text" readonly value="1"></th>
+                    <th><input type="text" readonly value="0.5"></th>
+                    <th><input type="text" readonly value="0.25"></th>
+                    <th><input type="text" readonly value="0.125"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса, г</td>
+                    <td><input type="text" step="any" name="sieve_2_weight" id="sieve_2_weight" value="{{ test_result.sieve_2_weight|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="sieve_1_weight" id="sieve_1_weight" value="{{ test_result.sieve_1_weight|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="sieve_05_weight" id="sieve_05_weight" value="{{ test_result.sieve_05_weight|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="sieve_025_weight" id="sieve_025_weight" value="{{ test_result.sieve_025_weight|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="sieve_0125_weight" id="sieve_0125_weight" value="{{ test_result.sieve_0125_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Частный остаток</td>
+                    <td><input type="text" step="any" readonly id="sieve_2_partial" value="{{ test_result.sieve_2_partial|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_1_partial" value="{{ test_result.sieve_1_partial|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_05_partial" value="{{ test_result.sieve_05_partial|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_025_partial" value="{{ test_result.sieve_025_partial|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_0125_partial" value="{{ test_result.sieve_0125_partial|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Полный остаток</td>
+                    <td><input type="text" step="any" readonly id="sieve_2_full" value="{{ test_result.sieve_2_full|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_1_full" value="{{ test_result.sieve_1_full|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_05_full" value="{{ test_result.sieve_05_full|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_025_full" value="{{ test_result.sieve_025_full|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="sieve_0125_full" value="{{ test_result.sieve_0125_full|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Модуль крупности</h5>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Модуль крупности</td>
+                    <td><input type="text" step="any" readonly id="size_module_value" value="{{ test_result.size_module_value|default_if_none:'' }}"></td>
+                    <td><input type="text" readonly id="size_module_name" value="{{ test_result.size_module_name|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Содержание глины в комках</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="text" step="any" name="clay_initial_weight" id="clay_initial_weight" value="{{ test_result.clay_initial_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса глины, гр</td>
+                    <td><input type="text" step="any" name="clay_weight" id="clay_weight" value="{{ test_result.clay_weight|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание, %</td>
+                    <td><input type="text" step="any" readonly id="clay_percent" value="{{ test_result.clay_percent|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Влажности</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер бюкса/ чаши</td>
+                    <td><input type="text" name="humidity_1_number" value="{{ test_result.humidity_1_number|default_if_none:'' }}"></td>
+                    <td><input type="text" name="humidity_2_number" value="{{ test_result.humidity_2_number|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши, гр</td>
+                    <td><input type="text" step="any" name="humidity_1_container" id="humidity_1_container" value="{{ test_result.humidity_1_container|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="humidity_2_container" id="humidity_2_container" value="{{ test_result.humidity_2_container|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши с песком, гр</td>
+                    <td><input type="text" step="any" name="humidity_1_with_sand" id="humidity_1_with_sand" value="{{ test_result.humidity_1_with_sand|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="humidity_2_with_sand" id="humidity_2_with_sand" value="{{ test_result.humidity_2_with_sand|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши с песком после высушивания, гр</td>
+                    <td><input type="text" step="any" name="humidity_1_after_dry" id="humidity_1_after_dry" value="{{ test_result.humidity_1_after_dry|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="humidity_2_after_dry" id="humidity_2_after_dry" value="{{ test_result.humidity_2_after_dry|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Влажность</td>
+                    <td><input type="text" step="any" readonly id="humidity_1_value" value="{{ test_result.humidity_1_value|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="humidity_2_value" value="{{ test_result.humidity_2_value|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="text" step="any" readonly id="humidity_average" value="{{ test_result.humidity_average|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Содержание глинистых частиц методом набухания</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер образца</td>
+                    <td><input type="text" name="clay_swell_1_number" value="{{ test_result.clay_swell_1_number|default_if_none:'' }}"></td>
+                    <td><input type="text" name="clay_swell_2_number" value="{{ test_result.clay_swell_2_number|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Исходный объем песка, мл</td>
+                    <td><input type="text" step="any" name="clay_swell_1_initial" id="clay_swell_1_initial" value="{{ test_result.clay_swell_1_initial|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="clay_swell_2_initial" id="clay_swell_2_initial" value="{{ test_result.clay_swell_2_initial|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Объем песка после набухания, мл</td>
+                    <td><input type="text" step="any" name="clay_swell_1_after" id="clay_swell_1_after" value="{{ test_result.clay_swell_1_after|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="clay_swell_2_after" id="clay_swell_2_after" value="{{ test_result.clay_swell_2_after|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Приращение объема К</td>
+                    <td><input type="text" step="any" readonly id="clay_swell_1_k" value="{{ test_result.clay_swell_1_k|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="clay_swell_2_k" value="{{ test_result.clay_swell_2_k|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="text" step="any" readonly id="clay_swell_average_k" value="{{ test_result.clay_swell_average_k|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание глинистых частиц в песке</td>
+                    <td colspan="2"><input type="text" step="any" readonly id="clay_swell_content" value="{{ test_result.clay_swell_content|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Заключение</td>
+                    <td colspan="2"><input type="text" readonly id="clay_swell_conclusion" value="{{ test_result.clay_swell_conclusion|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Насыпная плотность</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Объем сосуда, см3</td>
+                    <td><input type="text" step="any" name="bulk_1_volume" id="bulk_1_volume" value="{{ test_result.bulk_1_volume|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="bulk_2_volume" id="bulk_2_volume" value="{{ test_result.bulk_2_volume|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустого сосуда, гр</td>
+                    <td><input type="text" step="any" name="bulk_1_empty" id="bulk_1_empty" value="{{ test_result.bulk_1_empty|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="bulk_2_empty" id="bulk_2_empty" value="{{ test_result.bulk_2_empty|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса сосуда с пробой, гр</td>
+                    <td><input type="text" step="any" name="bulk_1_full" id="bulk_1_full" value="{{ test_result.bulk_1_full|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" name="bulk_2_full" id="bulk_2_full" value="{{ test_result.bulk_2_full|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Насыпная плотность, гр/см3</td>
+                    <td><input type="text" step="any" readonly id="bulk_1_density" value="{{ test_result.bulk_1_density|default_if_none:'' }}"></td>
+                    <td><input type="text" step="any" readonly id="bulk_2_density" value="{{ test_result.bulk_2_density|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="text" step="any" readonly id="bulk_average_density" value="{{ test_result.bulk_average_density|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Истинная плотность</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер образца</td>
+                    <td><input type="text" name="actual_1_number" id="actual_1_number" value="{{ test_result.actual_1_number|default_if_none:'' }}"></td>
+                    <td><input type="text" name="actual_2_number" id="actual_2_number" value="{{ test_result.actual_2_number|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустого пикнометра, гр</td>
+                    <td><input type="text" name="actual_1_empty" id="actual_1_empty" value="{{ test_result.actual_1_empty|default_if_none:'' }}"></td>
+                    <td><input type="text" name="actual_2_empty" id="actual_2_empty" value="{{ test_result.actual_2_empty|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с дистиллированной водой, гр</td>
+                    <td><input type="text" name="actual_1_water" id="actual_1_water" value="{{ test_result.actual_1_water|default_if_none:'' }}"></td>
+                    <td><input type="text" name="actual_2_water" id="actual_2_water" value="{{ test_result.actual_2_water|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с песком, гр</td>
+                    <td><input type="text" name="actual_1_sand" id="actual_1_sand" value="{{ test_result.actual_1_sand|default_if_none:'' }}"></td>
+                    <td><input type="text" name="actual_2_sand" id="actual_2_sand" value="{{ test_result.actual_2_sand|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с песком и дистиллированной водой наполненного до метки, гр</td>
+                    <td><input type="text" name="actual_1_full" id="actual_1_full" value="{{ test_result.actual_1_full|default_if_none:'' }}"></td>
+                    <td><input type="text" name="actual_2_full" id="actual_2_full" value="{{ test_result.actual_2_full|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Истинная плотность, гр/см3</td>
+                    <td><input type="text" readonly id="actual_1_density" name="actual_1_density" value="{{ test_result.actual_1_density|default_if_none:'' }}"></td>
+                    <td><input type="text" readonly id="actual_2_density" name="actual_2_density" value="{{ test_result.actual_2_density|default_if_none:'' }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="text" readonly id="actual_average_density" name="actual_average_density" value="{{ test_result.actual_average_density|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Пустотность песка</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Пустотность, %</td>
+                    <td><input type="text" readonly id="emptiness" name="emptiness" value="{{ test_result.emptiness|default_if_none:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="form-group" style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn-result btn-save" name="action" value="save">
+                <span style="margin-right:5px;"><i class="bi bi-save" style="color: #6C757D"></i></span>
+                <span style="color: #6C757D">Сохранить и завершить</span>
+            </button>
+            <a href="{% url 'sample_list' %}" class="btn-result btn-cancel" style="text-decoration: none;">
+                <span style="margin-right:5px;"><i class="bi bi-x-circle" style="color: #6C757D"></i></span>
+                <span style="color: #6C757D">Отмена</span>
+            </a>
+        </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/fix_number_inputs.js' %}"></script>
+    <script src="{% static 'js/sample_test_calculations.js' %}"></script>
+    <script src="{% static 'js/humidity_calculations.js' %}"></script>
+    <script src="{% static 'js/density_calculations.js' %}"></script>
+</body>
+</html>

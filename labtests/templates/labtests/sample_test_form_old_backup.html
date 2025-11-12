@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений - {{ sample.material.name }} по {{ sample.gost.number }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th:has(input) {
+            padding:0px;
+            height:10px;
+        }
+
+        td:has(input) {
+            padding: 0px;
+        }
+
+        input {
+            width: 100%;
+            text-align: center;
+            height: 3rem;
+            border: none;
+            outline: none;
+        }
+
+        input[readonly]{
+            background-color: #f5f5f5;
+            border: 1px;
+            pointer-events: none;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        h5 {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-alert {
+            background-color: #ffcccc !important;
+        }
+
+        .btn-result {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .btn-save {
+            border:2px solid #80ff80
+        }
+        
+        .btn-save:hover {
+            background-color: #80ff80;
+        }
+        
+        .btn-cancel {
+            border:2px solid #ff9999
+        }
+        
+        .btn-cancel:hover {
+            background-color: #ff9999;
+        }
+
+        .text-right {
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .header-info td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .header-info input {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        select.form-control {
+            height: 3rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0 10px;
+            width: 200px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Лист измерений ({{ sample.material.name }} по {{ sample.gost.number }})</h1>
+    
+    <table class="header-info">
+        <tbody>
+            <tr>
+                <td>Номер</td>
+                <td><input type="text" disabled value="{{ sample.sample_number }}"></td>
+            </tr>
+            <tr>
+                <td>Дата отбора</td>
+                <td><input type="date" disabled value="{{ sample.sampling_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Заказчик</td>
+                <td><input type="text" disabled value="{{ sample.customer }}"></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию</td>
+                <td><input type="date" disabled value="{{ sample.received_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование материала</td>
+                <td><input type="text" value="{{ sample.material.name }}" disabled></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала</td>
+                <td><input type="text" disabled value="{{ sample.supplier }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта</td>
+                <td><input type="text" disabled value="{{ sample.object_name }}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form id="result" method="post">
+        {% csrf_token %}
+        
+        <!-- Скрытые поля для readonly значений -->
+        <input type="hidden" name="grain_8_percent" id="grain_8_percent_hidden">
+        <input type="hidden" name="grain_4_percent" id="grain_4_percent_hidden">
+        <input type="hidden" name="dust_percent" id="dust_percent_hidden">
+        <input type="hidden" name="sieve_2_partial" id="sieve_2_partial_hidden">
+        <input type="hidden" name="sieve_1_partial" id="sieve_1_partial_hidden">
+        <input type="hidden" name="sieve_05_partial" id="sieve_05_partial_hidden">
+        <input type="hidden" name="sieve_025_partial" id="sieve_025_partial_hidden">
+        <input type="hidden" name="sieve_0125_partial" id="sieve_0125_partial_hidden">
+        <input type="hidden" name="sieve_2_full" id="sieve_2_full_hidden">
+        <input type="hidden" name="sieve_1_full" id="sieve_1_full_hidden">
+        <input type="hidden" name="sieve_05_full" id="sieve_05_full_hidden">
+        <input type="hidden" name="sieve_025_full" id="sieve_025_full_hidden">
+        <input type="hidden" name="sieve_0125_full" id="sieve_0125_full_hidden">
+        <input type="hidden" name="size_module_value" id="size_module_value_hidden">
+        <input type="hidden" name="size_module_name" id="size_module_name_hidden">
+        <input type="hidden" name="clay_percent" id="clay_percent_hidden">
+        <input type="hidden" name="humidity_1_value" id="humidity_1_value_hidden">
+        <input type="hidden" name="humidity_2_value" id="humidity_2_value_hidden">
+        <input type="hidden" name="humidity_average" id="humidity_average_hidden">
+        <input type="hidden" name="clay_swell_1_k" id="clay_swell_1_k_hidden">
+        <input type="hidden" name="clay_swell_2_k" id="clay_swell_2_k_hidden">
+        <input type="hidden" name="clay_swell_average_k" id="clay_swell_average_k_hidden">
+        <input type="hidden" name="clay_swell_content" id="clay_swell_content_hidden">
+        <input type="hidden" name="clay_swell_conclusion" id="clay_swell_conclusion_hidden">
+        <input type="hidden" name="bulk_1_density" id="bulk_1_density_hidden">
+        <input type="hidden" name="bulk_2_density" id="bulk_2_density_hidden">
+        <input type="hidden" name="bulk_average_density" id="bulk_average_density_hidden">
+        <input type="hidden" name="actual_1_density" id="actual_1_density_hidden">
+        <input type="hidden" name="actual_2_density" id="actual_2_density_hidden">
+        <input type="hidden" name="actual_average_density" id="actual_average_density_hidden">
+        <input type="hidden" name="emptiness" id="emptiness_hidden">
+        
+        <select class="form-control" name="result_class" id="result_class">
+            <option value="I класс" {% if test_result.result_class == 'I класс' %}selected{% endif %}>I класс</option>
+            <option value="II класс" {% if test_result.result_class == 'II класс' %}selected{% endif %}>II класс</option>
+        </select>
+
+        <h2>Зерновой состав и модуль крупности</h2>
+        <h5>Содержание частиц крупнее 8 и 4 мм</h5>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td colspan="2"><input type="number" step="any" name="grain_initial_weight" id="grain_initial_weight" value="{{ test_result.grain_initial_weight|default:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Сито, мм</td>
+                    <td>8</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>Масса, гр</td>
+                    <td><input type="number" step="any" name="grain_8_weight" id="grain_8_weight" value="{{ test_result.grain_8_weight|default:'' }}"></td>
+                    <td><input type="number" step="any" name="grain_4_weight" id="grain_4_weight" value="{{ test_result.grain_4_weight|default:'' }}"></td>
+                </tr>
+                <tr>
+                    <td>Остаток, %</td>
+                    <td><input type="number" step="any" readonly name="grain_8_percent" id="grain_8_percent" class="input-alert" value="{{ test_result.grain_8_percent|default:'' }}"></td>
+                    <td><input type="number" step="any" readonly name="grain_4_percent" id="grain_4_percent" class="input-alert" value="{{ test_result.grain_4_percent|default:'' }}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Содержание пылевидных и глинистых частиц</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="number" step="any" name="dust_initial_weight" id="dust_initial_weight"></td>
+                </tr>
+                <tr>
+                    <td>Масса после промывки, гр</td>
+                    <td><input type="number" step="any" name="dust_after_weight" id="dust_after_weight"></td>
+                </tr>
+                <tr>
+                    <td>Содержание п/г, %</td>
+                    <td><input type="number" step="any" readonly name="dust_percent" id="dust_percent"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Зерновой состав</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Сито, мм</th>
+                    <th><input type="text" readonly value="2"></th>
+                    <th><input type="text" readonly value="1"></th>
+                    <th><input type="text" readonly value="0.5"></th>
+                    <th><input type="text" readonly value="0.25"></th>
+                    <th><input type="text" readonly value="0.125"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса, г</td>
+                    <td><input type="number" step="any" name="sieve_2_weight" id="sieve_2_weight"></td>
+                    <td><input type="number" step="any" name="sieve_1_weight" id="sieve_1_weight"></td>
+                    <td><input type="number" step="any" name="sieve_05_weight" id="sieve_05_weight"></td>
+                    <td><input type="number" step="any" name="sieve_025_weight" id="sieve_025_weight"></td>
+                    <td><input type="number" step="any" name="sieve_0125_weight" id="sieve_0125_weight"></td>
+                </tr>
+                <tr>
+                    <td>Частный остаток</td>
+                    <td><input type="number" step="any" readonly name="sieve_2_partial" id="sieve_2_partial"></td>
+                    <td><input type="number" step="any" readonly name="sieve_1_partial" id="sieve_1_partial"></td>
+                    <td><input type="number" step="any" readonly name="sieve_05_partial" id="sieve_05_partial"></td>
+                    <td><input type="number" step="any" readonly name="sieve_025_partial" id="sieve_025_partial"></td>
+                    <td><input type="number" step="any" readonly name="sieve_0125_partial" id="sieve_0125_partial"></td>
+                </tr>
+                <tr>
+                    <td>Полный остаток</td>
+                    <td><input type="number" step="any" readonly name="sieve_2_full" id="sieve_2_full"></td>
+                    <td><input type="number" step="any" readonly name="sieve_1_full" id="sieve_1_full"></td>
+                    <td><input type="number" step="any" readonly name="sieve_05_full" id="sieve_05_full"></td>
+                    <td><input type="number" step="any" readonly name="sieve_025_full" id="sieve_025_full"></td>
+                    <td><input type="number" step="any" readonly name="sieve_0125_full" id="sieve_0125_full"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h5>Модуль крупности</h5>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Модуль крупности</td>
+                    <td><input type="number" step="any" readonly name="size_module_value" id="size_module_value"></td>
+                    <td><input type="text" readonly name="size_module_name" id="size_module_name"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Содержание глины в комках</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="number" step="any" name="clay_initial_weight" id="clay_initial_weight"></td>
+                </tr>
+                <tr>
+                    <td>Масса глины, гр</td>
+                    <td><input type="number" step="any" name="clay_weight" id="clay_weight"></td>
+                </tr>
+                <tr>
+                    <td>Содержание, %</td>
+                    <td><input type="number" step="any" readonly name="clay_percent" id="clay_percent"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Влажности</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер бюкса/ чаши</td>
+                    <td><input type="text" name="humidity_1_number"></td>
+                    <td><input type="text" name="humidity_2_number"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши, гр</td>
+                    <td><input type="number" step="any" name="humidity_1_container" id="humidity_1_container"></td>
+                    <td><input type="number" step="any" name="humidity_2_container" id="humidity_2_container"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши с песком, гр</td>
+                    <td><input type="number" step="any" name="humidity_1_with_sand" id="humidity_1_with_sand"></td>
+                    <td><input type="number" step="any" name="humidity_2_with_sand" id="humidity_2_with_sand"></td>
+                </tr>
+                <tr>
+                    <td>Масса бюкса/ чаши с песком после высушивания, гр</td>
+                    <td><input type="number" step="any" name="humidity_1_after_dry" id="humidity_1_after_dry"></td>
+                    <td><input type="number" step="any" name="humidity_2_after_dry" id="humidity_2_after_dry"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Влажность</td>
+                    <td><input type="number" step="any" readonly name="humidity_1_value" id="humidity_1_value"></td>
+                    <td><input type="number" step="any" readonly name="humidity_2_value" id="humidity_2_value"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="number" step="any" readonly name="humidity_average" id="humidity_average"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Содержание глинистых частиц методом набухания</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер образца</td>
+                    <td><input type="text" name="clay_swell_1_number"></td>
+                    <td><input type="text" name="clay_swell_2_number"></td>
+                </tr>
+                <tr>
+                    <td>Исходный объем песка, мл</td>
+                    <td><input type="number" step="any" name="clay_swell_1_initial" id="clay_swell_1_initial"></td>
+                    <td><input type="number" step="any" name="clay_swell_2_initial" id="clay_swell_2_initial"></td>
+                </tr>
+                <tr>
+                    <td>Объем песка после набухания, мл</td>
+                    <td><input type="number" step="any" name="clay_swell_1_after" id="clay_swell_1_after"></td>
+                    <td><input type="number" step="any" name="clay_swell_2_after" id="clay_swell_2_after"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Приращение объема К</td>
+                    <td><input type="number" step="any" readonly name="clay_swell_1_k" id="clay_swell_1_k"></td>
+                    <td><input type="number" step="any" readonly name="clay_swell_2_k" id="clay_swell_2_k"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="number" step="any" readonly name="clay_swell_average_k" id="clay_swell_average_k"></td>
+                </tr>
+                <tr>
+                    <td>Содержание глинистых частиц в песке</td>
+                    <td colspan="2"><input type="number" step="any" readonly name="clay_swell_content" id="clay_swell_content"></td>
+                </tr>
+                <tr>
+                    <td>Заключение</td>
+                    <td colspan="2"><input type="text" readonly name="clay_swell_conclusion" id="clay_swell_conclusion"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Насыпная плотность</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Объем сосуда, см3</td>
+                    <td><input type="number" step="any" name="bulk_1_volume" id="bulk_1_volume"></td>
+                    <td><input type="number" step="any" name="bulk_2_volume" id="bulk_2_volume"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустого сосуда, гр</td>
+                    <td><input type="number" step="any" name="bulk_1_empty" id="bulk_1_empty"></td>
+                    <td><input type="number" step="any" name="bulk_2_empty" id="bulk_2_empty"></td>
+                </tr>
+                <tr>
+                    <td>Масса сосуда с пробой, гр</td>
+                    <td><input type="number" step="any" name="bulk_1_full" id="bulk_1_full"></td>
+                    <td><input type="number" step="any" name="bulk_2_full" id="bulk_2_full"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Насыпная плотность, гр/см3</td>
+                    <td><input type="number" step="any" readonly name="bulk_1_density" id="bulk_1_density"></td>
+                    <td><input type="number" step="any" readonly name="bulk_2_density" id="bulk_2_density"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="number" step="any" readonly name="bulk_average_density" id="bulk_average_density"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Истинная плотность</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th colspan="2">Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Номер образца</td>
+                    <td><input type="text" name="actual_1_number"></td>
+                    <td><input type="text" name="actual_2_number"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустого пикнометра, гр</td>
+                    <td><input type="number" step="any" name="actual_1_empty" id="actual_1_empty"></td>
+                    <td><input type="number" step="any" name="actual_2_empty" id="actual_2_empty"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с дистиллированной водой, гр</td>
+                    <td><input type="number" step="any" name="actual_1_water" id="actual_1_water"></td>
+                    <td><input type="number" step="any" name="actual_2_water" id="actual_2_water"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с песком, гр</td>
+                    <td><input type="number" step="any" name="actual_1_sand" id="actual_1_sand"></td>
+                    <td><input type="number" step="any" name="actual_2_sand" id="actual_2_sand"></td>
+                </tr>
+                <tr>
+                    <td>Масса пикнометра с песком и дистиллированной водой наполненного до метки, гр</td>
+                    <td><input type="number" step="any" name="actual_1_full" id="actual_1_full"></td>
+                    <td><input type="number" step="any" name="actual_2_full" id="actual_2_full"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Истинная плотность, гр/см3</td>
+                    <td><input type="number" step="any" readonly name="actual_1_density" id="actual_1_density"></td>
+                    <td><input type="number" step="any" readonly name="actual_2_density" id="actual_2_density"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="number" step="any" readonly name="actual_average_density" id="actual_average_density"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-right">
+            Испытания провел(а): {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+
+        <h2>Пустотность песка</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Пустотность, %</td>
+                    <td><input type="number" step="any" readonly name="emptiness" id="emptiness"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="form-group" style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn-result btn-save" name="action" value="save" onclick="console.log('Форма отправляется...');">
+                <span style="margin-right:5px;"><i class="bi bi-save" style="color: #6C757D"></i></span>
+                <span style="color: #6C757D">Сохранить и завершить</span>
+            </button>
+            <a href="{% url 'sample_list' %}" class="btn-result btn-cancel" style="text-decoration: none;">
+                <span style="margin-right:5px;"><i class="bi bi-x-circle" style="color: #6C757D"></i></span>
+                <span style="color: #6C757D">Отмена</span>
+            </a>
+        </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Блокировка нажатия Enter и вставки JavaScript
+        document.getElementById('result').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 40 || e.keyCode === 38) {
+                e.preventDefault();
+            }
+        });
+        
+        // КРИТИЧЕСКАЯ ЗАЩИТА от вставки JavaScript кода
+        document.addEventListener('paste', function(e) {
+            // Блокируем вставку ВЕЗДЕ на странице
+            const pasteData = e.clipboardData.getData('text');
+            
+            // Проверяем на JavaScript код
+            const jsPatterns = [
+                'function', 'document.', 'getElementById', 'addEventListener',
+                'var ', 'let ', 'const ', 'if (', 'for (', 'while (',
+                '=>', '$(', 'calculate', '.value', '.innerHTML'
+            ];
+            
+            const hasJSCode = jsPatterns.some(pattern => pasteData.includes(pattern));
+            
+            if (hasJSCode || pasteData.length > 500) {
+                e.preventDefault();
+                alert('⛔ ЗАБЛОКИРОВАНО!\n\nПопытка вставить JavaScript код!\n\nВставляйте только числа в поля формы.');
+                console.error('Blocked paste attempt:', pasteData.substring(0, 100) + '...');
+                return false;
+            }
+            
+            // Для INPUT полей - дополнительная проверка
+            if (e.target.tagName === 'INPUT') {
+                // Для числовых полей - только числа
+                if (e.target.type === 'number' || e.target.inputMode === 'numeric') {
+                    e.preventDefault();
+                    
+                    // Извлекаем только первое число
+                    const numbers = pasteData.match(/-?\d+\.?\d*/g);
+                    if (numbers && numbers[0]) {
+                        e.target.value = numbers[0];
+                        e.target.dispatchEvent(new Event('input', { bubbles: true }));
+                        console.log('Extracted number:', numbers[0]);
+                    } else {
+                        alert('В поле можно вставить только число!');
+                    }
+                    return false;
+                }
+            }
+        });
+        
+        // Дополнительная защита для всех input полей
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('beforeinput', function(e) {
+                if (e.data && e.data.length > 10) {
+                    e.preventDefault();
+                    console.warn('Blocked long input:', e.data);
+                }
+            });
+        });
+
+        // Функция синхронизации readonly поля со скрытым полем
+        function syncHiddenField(fieldId) {
+            var field = document.getElementById(fieldId);
+            var hiddenField = document.getElementById(fieldId + '_hidden');
+            if (field && hiddenField) {
+                hiddenField.value = field.value;
+            }
+        }
+
+        // Расчет остатков для частиц крупнее 8 и 4 мм
+        function calculateGrainsMore4() {
+            var Iiw = document.getElementById('grain_initial_weight');
+            var Iw = document.getElementById('grain_4_weight');
+            if (Iiw != null && Iw != null) {
+                var iw = Iiw.valueAsNumber;
+                var w = Iw.valueAsNumber;
+                if (!isNaN(iw) && !isNaN(w) && iw > 0) {
+                    var value = Math.round(w / iw * 100 * 100) / 100;
+                    document.getElementById('grain_4_percent').value = value;
+                    syncHiddenField('grain_4_percent');
+                }
+            }
+        }
+
+        function calculateGrainsMore8() {
+            var Iiw = document.getElementById('grain_initial_weight');
+            var Iw = document.getElementById('grain_8_weight');
+            if (Iiw != null && Iw != null) {
+                var iw = Iiw.valueAsNumber;
+                var w = Iw.valueAsNumber;
+                if (!isNaN(iw) && !isNaN(w) && iw > 0) {
+                    var value = Math.round(w / iw * 100 * 100) / 100;
+                    document.getElementById('grain_8_percent').value = value;
+                    syncHiddenField('grain_8_percent');
+                }
+            }
+        }
+
+        // Event listeners для расчета остатков 8 и 4 мм
+        var inputGrainInitialWeight = document.getElementById('grain_initial_weight');
+        if (inputGrainInitialWeight != null) {
+            inputGrainInitialWeight.addEventListener("input", function () {
+                calculateGrainsMore4();
+                calculateGrainsMore8();
+            });
+        }
+
+        var inputGrain4 = document.getElementById('grain_4_weight');
+        if (inputGrain4 != null) {
+            inputGrain4.addEventListener("input", calculateGrainsMore4);
+        }
+
+        var inputGrain8 = document.getElementById('grain_8_weight');
+        if (inputGrain8 != null) {
+            inputGrain8.addEventListener("input", calculateGrainsMore8);
+        }
+
+        // Расчет содержания пылевидных и глинистых частиц
+        function calculateDustAndClay() {
+            var Iiw = document.getElementById('dust_initial_weight');
+            var Iw = document.getElementById('dust_after_weight');
+            if (Iiw != null && Iw != null) {
+                var iw = Iiw.valueAsNumber;
+                var w = Iw.valueAsNumber;
+                if (!isNaN(iw) && !isNaN(w) && iw > 0) {
+                    var cv = Math.round((iw - w) / iw * 100 * 10) / 10;
+                    document.getElementById('dust_percent').value = cv;
+                    syncHiddenField('dust_percent');
+                }
+            }
+        }
+
+        var inputDustInitialWeight = document.getElementById('dust_initial_weight');
+        if (inputDustInitialWeight != null) {
+            inputDustInitialWeight.addEventListener("input", function () {
+                calculateDustAndClay();
+                calculatePartitions();
+            });
+        }
+        var inputDustAfterWeight = document.getElementById('dust_after_weight');
+        if (inputDustAfterWeight != null) {
+            inputDustAfterWeight.addEventListener("input", calculateDustAndClay);
+        }
+
+        // Расчет зернового состава (частные и полные остатки)
+        function calculatePartitions() {
+            for (let i = 0; i < 5; i++) {
+                var sieves = ['2', '1', '05', '025', '0125'];
+                var sieve = sieves[i];
+                var Iw = document.getElementById(`sieve_${sieve}_weight`);
+                var Iiw = document.getElementById('dust_initial_weight'); // ВАЖНО: используем массу из пылевидных частиц
+                
+                if (Iw != null && Iiw != null) {
+                    var w = Iw.valueAsNumber;
+                    var iw = Iiw.valueAsNumber;
+                    if (!isNaN(w) && !isNaN(iw) && iw > 0) {
+                        var rv = document.getElementById(`sieve_${sieve}_partial`);
+                        var fv = document.getElementById(`sieve_${sieve}_full`);
+                        if (rv != null && fv != null) {
+                            var _rv = Math.round((w / iw) * 100 * 10) / 10;
+                            rv.value = _rv;
+                            syncHiddenField(`sieve_${sieve}_partial`);
+                            
+                            // Полный остаток = частный остаток + предыдущий полный остаток
+                            if (i != 0) {
+                                var prevSieve = sieves[i - 1];
+                                var fv_prev = document.getElementById(`sieve_${prevSieve}_full`);
+                                if (fv_prev != null) {
+                                    var _fv_prev = fv_prev.valueAsNumber;
+                                    if (!isNaN(_fv_prev)) {
+                                        _rv += _fv_prev;
+                                    }
+                                }
+                            }
+                            
+                            var r = Math.round(_rv * 10) / 10;
+                            fv.value = r;
+                            syncHiddenField(`sieve_${sieve}_full`);
+                        }
+                    }
+                }
+            }
+            calculateSizeModule();
+        }
+
+        // Event listeners для зернового состава
+        for (let i = 0; i < 5; i++) {
+            var sieves = ['2', '1', '05', '025', '0125'];
+            var input = document.getElementById(`sieve_${sieves[i]}_weight`);
+            if (input != null) {
+                input.addEventListener("input", calculatePartitions);
+            }
+        }
+
+        var inputClayInitialWeight = document.getElementById('clay_initial_weight');
+        if (inputClayInitialWeight != null) {
+            inputClayInitialWeight.addEventListener("input", calculateClay);
+        }
+        var inputClayWeight = document.getElementById('clay_weight');
+        if (inputClayWeight != null) {
+            inputClayWeight.addEventListener("input", calculateClay);
+        }
+
+        // Event listeners для влажности
+        var humidityInputs = ['humidity_1_container', 'humidity_1_with_sand', 'humidity_1_after_dry', 
+                             'humidity_2_container', 'humidity_2_with_sand', 'humidity_2_after_dry'];
+        humidityInputs.forEach(inputId => {
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function() { 
+                    calculateHumidity(inputId.includes('_1_') ? 1 : 2); 
+                });
+            }
+        });
+
+        // Event listeners для набухания
+        var claySwellInputs = ['clay_swell_1_initial', 'clay_swell_1_after', 'clay_swell_2_initial', 'clay_swell_2_after'];
+        claySwellInputs.forEach(inputId => {
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function() { 
+                    calculateClayConsistance(inputId.includes('_1_') ? 1 : 2); 
+                });
+            }
+        });
+
+        // Event listeners для насыпной плотности
+        var bulkInputs = ['bulk_1_volume', 'bulk_1_empty', 'bulk_1_full', 'bulk_2_volume', 'bulk_2_empty', 'bulk_2_full'];
+        bulkInputs.forEach(inputId => {
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function() { 
+                    calculateBulkDensity(inputId.includes('_1_') ? 1 : 2); 
+                });
+            }
+        });
+
+        // Event listeners для истинной плотности
+        var actualInputs = ['actual_1_empty', 'actual_1_water', 'actual_1_sand', 'actual_1_full', 
+                           'actual_2_empty', 'actual_2_water', 'actual_2_sand', 'actual_2_full'];
+        actualInputs.forEach(inputId => {
+            var input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('input', function() { 
+                    calculateActualDensity(inputId.includes('_1_') ? 1 : 2); 
+                });
+            }
+        });
+
+        // ===== ОТЛАДОЧНАЯ ПАНЕЛЬ =====
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            panel.classList.toggle('active');
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            const debugContent = document.getElementById('debugContent');
+            if (!debugContent) return;
+            
+            const readonlyFields = [
+                'grain_8_percent', 'grain_4_percent', 'dust_percent',
+                'sieve_2_partial', 'sieve_1_partial', 'sieve_05_partial', 'sieve_025_partial', 'sieve_0125_partial',
+                'sieve_2_full', 'sieve_1_full', 'sieve_05_full', 'sieve_025_full', 'sieve_0125_full',
+                'size_module_value', 'size_module_name', 'clay_percent',
+                'humidity_1_value', 'humidity_2_value', 'humidity_average',
+                'clay_swell_1_k', 'clay_swell_2_k', 'clay_swell_average_k', 'clay_swell_content', 'clay_swell_conclusion',
+                'bulk_1_density', 'bulk_2_density', 'bulk_average_density',
+                'actual_1_density', 'actual_2_density', 'actual_average_density',
+                'emptiness'
+            ];
+            
+            let html = '<h5>Readonly поля:</h5>';
+            readonlyFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const hiddenField = document.getElementById(fieldId + '_hidden');
+                
+                if (field && hiddenField) {
+                    const visible = field.value || 'пусто';
+                    const hidden = hiddenField.value || 'пусто';
+                    const match = field.value === hiddenField.value;
+                    
+                    html += `<div style="margin-bottom: 5px; ${!match ? 'color: red;' : ''}">
+                        <strong>${fieldId}:</strong><br>
+                        Видимое: ${visible}<br>
+                        Скрытое: ${hidden}<br>
+                        ${match ? '✅' : '❌'} Совпадает
+                    </div>`;
+                }
+            });
+            
+            debugContent.innerHTML = html;
+        }
+
+        // ===== ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('result');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('=== ФОРМА ОТПРАВЛЯЕТСЯ ===');
+                    
+                    // Принудительная синхронизация ВСЕХ readonly полей перед отправкой
+                    syncAllHiddenFields();
+                    
+                    // Логирование всех отправляемых данных
+                    const formData = new FormData(this);
+                    console.log('Отправляемые данные:');
+                    for (let [key, value] of formData) {
+                        if (value && value.trim() !== '') {
+                            console.log(`${key}: ${value}`);
+                        }
+                    }
+                    
+                    // Дополнительная проверка readonly полей
+                    const readonlyFields = [
+                        'grain_8_percent', 'grain_4_percent', 'dust_percent',
+                        'size_module_value', 'size_module_name', 'clay_percent',
+                        'humidity_average', 'bulk_average_density', 'actual_average_density', 'emptiness'
+                    ];
+                    
+                    console.log('=== ПРОВЕРКА READONLY ПОЛЕЙ ===');
+                    readonlyFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        const hiddenField = document.getElementById(fieldId + '_hidden');
+                        if (field && hiddenField) {
+                            console.log(`${fieldId}: visible=${field.value}, hidden=${hiddenField.value}`);
+                            if (field.value !== hiddenField.value) {
+                                console.warn(`НЕСООТВЕТСТВИЕ в поле ${fieldId}!`);
+                                // Принудительно синхронизируем
+                                hiddenField.value = field.value;
+                            }
+                        }
+                    });
+                    
+                    console.log('=== КОНЕЦ ПРОВЕРКИ ===');
+                });
+            }
+
+            // Автоматическое обновление отладочной информации при изменении полей
+            document.addEventListener('input', function() {
+                if (document.getElementById('debugPanel').classList.contains('active')) {
+                    setTimeout(updateDebugInfo, 100);
+                }
+            });
+
+            // Инициализация расчетов при загрузке страницы
+            console.log('DOM loaded, initializing calculations');
+            
+            calculateGrainsMore4();
+            calculateGrainsMore8();
+            calculateDustAndClay();
+            calculatePartitions();
+            calculateClay();
+            for (let i = 1; i <= 2; i++) {
+                calculateHumidity(i);
+                calculateClayConsistance(i);
+                calculateBulkDensity(i);
+                calculateActualDensity(i);
+            }
+
+            // Добавляем кнопку для принудительной синхронизации (для отладки)
+            const debugButton = document.createElement('button');
+            debugButton.type = 'button';
+            debugButton.textContent = 'Синхронизация';
+            debugButton.style.cssText = 'position: fixed; top: 50px; right: 320px; background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer; z-index: 1001;';
+            debugButton.onclick = function() {
+                console.log('Принудительная синхронизация всех полей...');
+                syncAllHiddenFields();
+                updateDebugInfo();
+                console.log('Синхронизация завершена');
+            };
+            document.body.appendChild(debugButton);
+        });
+    </script>
+</body>
+</html>05', '025', '0125'];
+            var input = document.getElementById(`sieve_${sieves[i]}_weight`);
+            if (input != null) {
+                input.addEventListener("input", calculatePartitions);
+            }
+        }
+
+        // Расчет модуля крупности
+        function calculateSizeModule() {
+            var sieves = ['2', '1', '05', '025', '0125'];
+            var sum = 0;
+            
+            sieves.forEach(sieve => {
+                var Ifv = document.getElementById(`sieve_${sieve}_full`);
+                if (Ifv != null) {
+                    var fv = Ifv.valueAsNumber;
+                    if (!isNaN(fv)) {
+                        sum += fv;
+                    }
+                }
+            });
+            
+            var module = Math.round((sum / 100) * 100) / 100;
+            document.getElementById('size_module_value').value = module;
+            syncHiddenField('size_module_value');
+            
+            // Определение типа песка по модулю крупности
+            var sandType = '';
+            if (module > 3.0) sandType = 'Очень крупный';
+            else if (module > 2.5) sandType = 'Крупный';
+            else if (module > 2.0) sandType = 'Средний';
+            else if (module > 1.5) sandType = 'Мелкий';
+            else if (module > 1.0) sandType = 'Очень мелкий';
+            else sandType = 'Тонкий';
+            
+            document.getElementById('size_module_name').value = sandType;
+            syncHiddenField('size_module_name');
+        }
+
+        // Расчет содержания глины в комках
+        function calculateClay() {
+            var Iiw = document.getElementById('clay_initial_weight');
+            var Iw = document.getElementById('clay_weight');
+            if (Iiw != null && Iw != null) {
+                var iw = Iiw.valueAsNumber;
+                var w = Iw.valueAsNumber;
+                if (!isNaN(iw) && !isNaN(w) && iw > 0) {
+                    var cv = Math.round(w / iw * 100 * 100) / 100;
+                    document.getElementById('clay_percent').value = cv;
+                    syncHiddenField('clay_percent');
+                }
+            }
+        }
+
+        var inputClayInitialWeight = document.getElementById('clay_initial_weight');
+        if (inputClayInitialWeight != null) {
+            inputClayInitialWeight.addEventListener("input", calculateClay);
+        }
+        var inputClayWeight = document.getElementById('clay_weight');
+        if (inputClayWeight != null) {
+            inputClayWeight.addEventListener("input", calculateClay);
+        }
+
+        // Расчет влажности
+        function calculateHumidity(i) {
+            var Iw = document.getElementById(`humidity_${i}_container`);
+            var Iwws = document.getElementById(`humidity_${i}_with_sand`);
+            var Iwwsa = document.getElementById(`humidity_${i}_after_dry`);
+            if(Iw != null && Iwws != null && Iwwsa != null){
+                var w = Iw.valueAsNumber;
+                var wws = Iwws.valueAsNumber;
+                var wwsa = Iwwsa.valueAsNumber;
+                if(!isNaN(w) && !isNaN(wws) && !isNaN(wwsa) && wwsa > w){
+                    var hv = Math.round((wws - wwsa) / (wwsa - w) * 100 * 10) / 10;
+                    document.getElementById(`humidity_${i}_value`).value = hv;
+                    syncHiddenField(`humidity_${i}_value`);
+                    calculateAverageHumidity();
+                }
+            }
+        }
+
+        function calculateAverageHumidity(){
+            var Ih1 = document.getElementById('humidity_1_value');
+            var Ih2 = document.getElementById('humidity_2_value');
+            if(Ih1 != null && Ih2 != null){
+                var h1 = Ih1.valueAsNumber;
+                var h2 = Ih2.valueAsNumber;
+                if (!isNaN(h1) && !isNaN(h2)) {
+                    var ah = Math.round((h1 + h2) / 2 * 10) / 10;
+                    document.getElementById('humidity_average').value = ah;
+                    syncHiddenField('humidity_average');
+                }
+            }
+        }
+
+        // Event listeners для влажности
+        document.getElementById('humidity_1_container').addEventListener('input', function() { calculateHumidity(1); });
+        document.getElementById('humidity_1_with_sand').addEventListener('input', function() { calculateHumidity(1); });
+        document.getElementById('humidity_1_after_dry').addEventListener('input', function() { calculateHumidity(1); });
+        document.getElementById('humidity_2_container').addEventListener('input', function() { calculateHumidity(2); });
+        document.getElementById('humidity_2_with_sand').addEventListener('input', function() { calculateHumidity(2); });
+        document.getElementById('humidity_2_after_dry').addEventListener('input', function() { calculateHumidity(2); });
+
+        // Расчет набухания глинистых частиц
+        function calculateClayConsistance(i) {
+            var Iiv = document.getElementById(`clay_swell_${i}_initial`);
+            var Iv = document.getElementById(`clay_swell_${i}_after`);
+            if (Iiv != null && Iv != null) {
+                var iv = Iiv.valueAsNumber;
+                var v = Iv.valueAsNumber;
+                if (!isNaN(iv) && !isNaN(v) && iv > 0) {
+                    var vi = Math.round((v - iv) / iv * 100) / 100;
+                    document.getElementById(`clay_swell_${i}_k`).value = vi;
+                    syncHiddenField(`clay_swell_${i}_k`);
+                    calculateAverageVolumeIncrement();
+                }
+            }
+        }
+
+        function calculateAverageVolumeIncrement() {
+            var Ivi1 = document.getElementById('clay_swell_1_k');
+            var Ivi2 = document.getElementById('clay_swell_2_k');
+            if (Ivi1 != null && Ivi2 != null) {
+                var vi1 = Ivi1.valueAsNumber;
+                var vi2 = Ivi2.valueAsNumber;
+                if (!isNaN(vi1) && !isNaN(vi2)) {
+                    if (Math.abs(vi1 - vi2) > 0.02) {
+                        document.getElementById('clay_swell_1_k').classList.add("input-alert");
+                        document.getElementById('clay_swell_2_k').classList.add("input-alert");
+                        document.getElementById('clay_swell_average_k').value = "";
+                        document.getElementById('clay_swell_content').value = "";
+                        document.getElementById('clay_swell_conclusion').value = "";
+                    } else {
+                        document.getElementById('clay_swell_1_k').classList.remove("input-alert");
+                        document.getElementById('clay_swell_2_k').classList.remove("input-alert");
+                        var avi = Math.round((vi1 + vi2) / 2 * 100) / 100;
+                        document.getElementById('clay_swell_average_k').value = avi;
+                        syncHiddenField('clay_swell_average_k');
+                        calculateClayConsistanceValue();
+                    }
+                }
+            }
+        }
+
+        function calculateClayConsistanceValue(){
+            var Ifv0125 = document.getElementById('sieve_0125_full');
+            var Iavi = document.getElementById('clay_swell_average_k');
+            if(Ifv0125 != null && Iavi != null){
+                var fv0125 = Ifv0125.valueAsNumber;
+                var avi = Iavi.valueAsNumber;
+                if(!isNaN(fv0125) && !isNaN(avi)){
+                    // Упрощенный расчет коэффициента (без API вызова)
+                    var coefficient = getClayConsistanceCoefficient(avi);
+                    if (coefficient != null) {
+                        var ccv = Math.round((coefficient * (100 - fv0125)) / 100 * 100) / 100;
+                        document.getElementById('clay_swell_content').value = ccv;
+                        syncHiddenField('clay_swell_content');
+                        
+                        // Заключение
+                        var conclusion = '';
+                        if (ccv <= 2) conclusion = 'Чистый';
+                        else if (ccv <= 5) conclusion = 'Повышенной чистоты';
+                        else if (ccv <= 10) conclusion = 'Загрязненный';
+                        else conclusion = 'Очень загрязненный';
+                        
+                        document.getElementById('clay_swell_conclusion').value = conclusion;
+                        syncHiddenField('clay_swell_conclusion');
+                    }
+                }
+            }
+        }
+
+        function getClayConsistanceCoefficient(avi) {
+            // Упрощенная таблица коэффициентов
+            if (avi <= 0.05) return 15;
+            else if (avi <= 0.1) return 25;
+            else if (avi <= 0.15) return 35;
+            else if (avi <= 0.2) return 45;
+            else if (avi <= 0.25) return 55;
+            else return 65;
+        }
+
+        // Event listeners для набухания
+        document.getElementById('clay_swell_1_initial').addEventListener('input', function() { calculateClayConsistance(1); });
+        document.getElementById('clay_swell_1_after').addEventListener('input', function() { calculateClayConsistance(1); });
+        document.getElementById('clay_swell_2_initial').addEventListener('input', function() { calculateClayConsistance(2); });
+        document.getElementById('clay_swell_2_after').addEventListener('input', function() { calculateClayConsistance(2); });
+
+        // Расчет насыпной плотности
+        function calculateBulkDensity(i) {
+            console.log(`calculateBulkDensity called for ${i}`);
+            var Icv = document.getElementById(`bulk_${i}_volume`);
+            var Iew = document.getElementById(`bulk_${i}_empty`);
+            var Iw = document.getElementById(`bulk_${i}_full`);
+            
+            console.log(`Elements found: volume=${!!Icv}, empty=${!!Iew}, full=${!!Iw}`);
+            
+            if (Icv != null && Iew != null && Iw != null) {
+                var cv = parseFloat(Icv.value) || 0;
+                var ew = parseFloat(Iew.value) || 0;
+                var w = parseFloat(Iw.value) || 0;
+                
+                console.log(`Bulk ${i}: volume=${cv}, empty=${ew}, full=${w}`);
+                
+                if (cv > 0 && w !== 0 && ew !== 0) {
+                    var bdv = Math.round((w - ew) / cv * 100) / 100;
+                    console.log(`Calculated density ${i}: ${bdv}`);
+                    document.getElementById(`bulk_${i}_density`).value = bdv;
+                    syncHiddenField(`bulk_${i}_density`);
+                    calculateAverageBulkDensity();
+                } else {
+                    console.log(`Clearing density ${i}`);
+                    document.getElementById(`bulk_${i}_density`).value = '';
+                    calculateAverageBulkDensity();
+                }
+            } else {
+                console.log(`Missing elements for bulk ${i}`);
+            }
+        }
+
+        function calculateAverageBulkDensity() {
+            var Ibdv1 = document.getElementById('bulk_1_density');
+            var Ibdv2 = document.getElementById('bulk_2_density');
+            if (Ibdv1 != null && Ibdv2 != null) {
+                var bdv1 = Ibdv1.valueAsNumber;
+                var bdv2 = Ibdv2.valueAsNumber;
+                console.log(`Average bulk: bdv1=${bdv1}, bdv2=${bdv2}`);
+                if (!isNaN(bdv1) && !isNaN(bdv2)) {
+                    if (Math.abs(bdv1 - bdv2) > 0.1) {
+                        document.getElementById('bulk_1_density').classList.add("input-alert");
+                        document.getElementById('bulk_2_density').classList.add("input-alert");
+                        document.getElementById('bulk_average_density').value = "";
+                        document.getElementById('emptiness').value = "";
+                    } else {
+                        document.getElementById('bulk_1_density').classList.remove("input-alert");
+                        document.getElementById('bulk_2_density').classList.remove("input-alert");
+                        var abd = Math.round((bdv1 + bdv2) / 2 * 100) / 100;
+                        document.getElementById('bulk_average_density').value = abd;
+                        syncHiddenField('bulk_average_density');
+                        calculateEmptiness();
+                    }
+                } else if (!isNaN(bdv1)) {
+                    // Если только одно значение
+                    document.getElementById('bulk_average_density').value = bdv1;
+                    calculateEmptiness();
+                } else if (!isNaN(bdv2)) {
+                    // Если только одно значение
+                    document.getElementById('bulk_average_density').value = bdv2;
+                    calculateEmptiness();
+                } else {
+                    document.getElementById('bulk_average_density').value = "";
+                    document.getElementById('emptiness').value = "";
+                }
+            }
+        }
+
+        // Event listeners для насыпной плотности
+        var bulk1Volume = document.getElementById('bulk_1_volume');
+        var bulk1Empty = document.getElementById('bulk_1_empty');
+        var bulk1Full = document.getElementById('bulk_1_full');
+        var bulk2Volume = document.getElementById('bulk_2_volume');
+        var bulk2Empty = document.getElementById('bulk_2_empty');
+        var bulk2Full = document.getElementById('bulk_2_full');
+        
+        if (bulk1Volume) bulk1Volume.addEventListener('input', function() { calculateBulkDensity(1); });
+        if (bulk1Empty) bulk1Empty.addEventListener('input', function() { calculateBulkDensity(1); });
+        if (bulk1Full) bulk1Full.addEventListener('input', function() { calculateBulkDensity(1); });
+        if (bulk2Volume) bulk2Volume.addEventListener('input', function() { calculateBulkDensity(2); });
+        if (bulk2Empty) bulk2Empty.addEventListener('input', function() { calculateBulkDensity(2); });
+        if (bulk2Full) bulk2Full.addEventListener('input', function() { calculateBulkDensity(2); });
+
+        // Расчет истинной плотности
+        function calculateActualDensity(i) {
+            var Iew = document.getElementById(`actual_${i}_empty`);
+            var Iwww = document.getElementById(`actual_${i}_water`);
+            var Iwws = document.getElementById(`actual_${i}_sand`);
+            var Iwwws = document.getElementById(`actual_${i}_full`);
+
+            if (Iew != null && Iwww != null && Iwws != null && Iwwws != null) {
+                var ew = Iew.valueAsNumber;
+                var www = Iwww.valueAsNumber;
+                var wws = Iwws.valueAsNumber;
+                var wwws = Iwwws.valueAsNumber;
+
+                if (!isNaN(ew) && !isNaN(www) && !isNaN(wws) && !isNaN(wwws)) {
+                    // Формула из оригинального кода
+                    var adv = Math.round((wws - ew) / ((wws - ew) + (www - wwws)) * 100) / 100;
+                    document.getElementById(`actual_${i}_density`).value = adv;
+                    syncHiddenField(`actual_${i}_density`);
+                    calculateAverageActualDensity();
+                }
+            }
+        }
+
+        function calculateAverageActualDensity() {
+            var Iadv1 = document.getElementById('actual_1_density');
+            var Iadv2 = document.getElementById('actual_2_density');
+            if (Iadv1 != null && Iadv2 != null) {
+                var adv1 = Iadv1.valueAsNumber;
+                var adv2 = Iadv2.valueAsNumber;
+                if (!isNaN(adv1) && !isNaN(adv2)) {
+                    var aad = Math.round((adv1 + adv2) / 2 * 100) / 100;
+                    document.getElementById('actual_average_density').value = aad;
+                    syncHiddenField('actual_average_density');
+                    calculateEmptiness();
+                }
+            }
+        }
+
+        // Event listeners для истинной плотности
+        var actual1Empty = document.getElementById('actual_1_empty');
+        var actual1Water = document.getElementById('actual_1_water');
+        var actual1Sand = document.getElementById('actual_1_sand');
+        var actual1Full = document.getElementById('actual_1_full');
+        var actual2Empty = document.getElementById('actual_2_empty');
+        var actual2Water = document.getElementById('actual_2_water');
+        var actual2Sand = document.getElementById('actual_2_sand');
+        var actual2Full = document.getElementById('actual_2_full');
+        
+        if (actual1Empty) actual1Empty.addEventListener('input', function() { calculateActualDensity(1); });
+        if (actual1Water) actual1Water.addEventListener('input', function() { calculateActualDensity(1); });
+        if (actual1Sand) actual1Sand.addEventListener('input', function() { calculateActualDensity(1); });
+        if (actual1Full) actual1Full.addEventListener('input', function() { calculateActualDensity(1); });
+        if (actual2Empty) actual2Empty.addEventListener('input', function() { calculateActualDensity(2); });
+        if (actual2Water) actual2Water.addEventListener('input', function() { calculateActualDensity(2); });
+        if (actual2Sand) actual2Sand.addEventListener('input', function() { calculateActualDensity(2); });
+        if (actual2Full) actual2Full.addEventListener('input', function() { calculateActualDensity(2); });
+
+        // Расчет пустотности С ЗАЩИТОЙ
+        function calculateEmptiness(){
+            try {
+                var emptinessField = document.getElementById('emptiness');
+                if (!emptinessField) {
+                    console.error('Field emptiness not found');
+                    return;
+                }
+                
+                var Iaad = document.getElementById('actual_average_density');
+                var Iabd = document.getElementById('bulk_average_density');
+                
+                if (Iaad != null && Iabd != null) {
+                    var aad = parseFloat(Iaad.value);
+                    var abd = parseFloat(Iabd.value);
+                    
+                    console.log('Calculating emptiness: aad=' + aad + ', abd=' + abd);
+                    
+                    if(!isNaN(aad) && !isNaN(abd) && aad > 0 && abd > 0 && aad >= abd){
+                        var e = Math.round((aad - abd) / aad * 100 * 100) / 100;
+                        
+                        // Строгая проверка результата
+                        if (!isNaN(e) && isFinite(e) && e >= 0 && e <= 100) {
+                            // Записываем ТОЛЬКО число
+                            emptinessField.value = e;
+                            syncHiddenField('emptiness');
+                            console.log('Emptiness calculated: ' + e + '%');
+                        } else {
+                            console.error('Invalid emptiness value:', e);
+                            emptinessField.value = '';
+                            syncHiddenField('emptiness');
+                        }
+                    } else {
+                        // Очищаем поле если данные некорректны
+                        emptinessField.value = '';
+                        syncHiddenField('emptiness');
+                    }
+                }
+            } catch (error) {
+                console.error('Error in calculateEmptiness:', error);
+                // В случае ошибки - очищаем поле
+                var field = document.getElementById('emptiness');
+                if (field) {
+                    field.value = '';
+                    syncHiddenField('emptiness');
+                }
+            }
+        }
+
+        // Инициализация расчетов при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing calculations');
+            
+            // Загружаем сохраненные данные
+            loadSavedData();
+            
+            calculateGrainsMore4();
+            calculateGrainsMore8();
+            calculateDustAndClay();
+            calculatePartitions();
+            calculateClay();
+            for (let i = 1; i <= 2; i++) {
+                calculateHumidity(i);
+                calculateClayConsistance(i);
+                calculateBulkDensity(i);
+                calculateActualDensity(i);
+            }
+        });
+        
+        // Функция обновления всех скрытых полей
+        function updateAllHiddenFields() {
+            // Список всех readonly полей
+            const readonlyFields = [
+                'grain_8_percent', 'grain_4_percent', 'dust_percent',
+                'sieve_2_partial', 'sieve_1_partial', 'sieve_05_partial', 'sieve_025_partial', 'sieve_0125_partial',
+                'sieve_2_full', 'sieve_1_full', 'sieve_05_full', 'sieve_025_full', 'sieve_0125_full',
+                'size_module_value', 'size_module_name', 'clay_percent',
+                'humidity_1_value', 'humidity_2_value', 'humidity_average',
+                'clay_swell_1_k', 'clay_swell_2_k', 'clay_swell_average_k', 'clay_swell_content', 'clay_swell_conclusion',
+                'bulk_1_density', 'bulk_2_density', 'bulk_average_density',
+                'actual_1_density', 'actual_2_density', 'actual_average_density',
+                'emptiness'
+            ];
+            
+            // Синхронизируем все поля
+            readonlyFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const hiddenField = document.getElementById(fieldId + '_hidden');
+                if (field && hiddenField) {
+                    hiddenField.value = field.value || '';
+                    syncHiddenField(fieldId); // Дополнительная синхронизация
+                }
+            });
+        }
+
+        // Функция синхронизации всех скрытых полей
+        function syncAllHiddenFields() {
+            console.log('=== СИНХРОНИЗАЦИЯ ВСЕХ СКРЫТЫХ ПОЛЕЙ ===');
+            
+            // Список всех readonly полей, которые нужно синхронизировать
+            const readonlyFields = [
+                'grain_8_percent', 'grain_4_percent', 'dust_percent',
+                'sieve_2_partial', 'sieve_1_partial', 'sieve_05_partial', 'sieve_025_partial', 'sieve_0125_partial',
+                'sieve_2_full', 'sieve_1_full', 'sieve_05_full', 'sieve_025_full', 'sieve_0125_full',
+                'size_module_value', 'size_module_name', 'clay_percent',
+                'humidity_1_value', 'humidity_2_value', 'humidity_average',
+                'clay_swell_1_k', 'clay_swell_2_k', 'clay_swell_average_k', 'clay_swell_content', 'clay_swell_conclusion',
+                'bulk_1_density', 'bulk_2_density', 'bulk_average_density',
+                'actual_1_density', 'actual_2_density', 'actual_average_density',
+                'emptiness'
+            ];
+            
+            // Синхронизируем каждое readonly поле со скрытым полем
+            readonlyFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const hiddenField = document.getElementById(fieldId + '_hidden');
+                
+                if (field && hiddenField) {
+                    // Копируем значение из видимого поля в скрытое
+                    hiddenField.value = field.value || '';
+                    console.log(`✅ Синхронизировано ${fieldId}: ${field.value || 'пусто'}`);
+                } else {
+                    if (!field) console.warn(`⚠️ Не найдено поле ${fieldId}`);
+                    if (!hiddenField) console.warn(`⚠️ Не найдено скрытое поле ${fieldId}_hidden`);
+                }
+            });
+            
+            console.log('=== СИНХРОНИЗАЦИЯ ЗАВЕРШЕНА ===');
+        }
+
+        // Логирование данных перед отправкой формы
+        document.getElementById('result').addEventListener('submit', function(e) {
+            // Обновляем все скрытые поля перед отправкой
+            syncAllHiddenFields();
+            
+            console.log('Форма отправляется. Текущие значения:');
+            const formData = new FormData(this);
+            for (let [key, value] of formData) {
+                if (value) {
+                    console.log(`${key}: ${value}`);
+                }
+            }
+        });
+        
+        // Функция загрузки сохраненных данных
+        function loadSavedData() {
+            {% if test_result %}
+            const savedData = {
+                // Числовые поля
+                {% if test_result.grain_initial_weight %}'grain_initial_weight': {{ test_result.grain_initial_weight }},{% endif %}
+                {% if test_result.grain_8_weight %}'grain_8_weight': {{ test_result.grain_8_weight }},{% endif %}
+                {% if test_result.grain_4_weight %}'grain_4_weight': {{ test_result.grain_4_weight }},{% endif %}
+                {% if test_result.grain_8_percent %}'grain_8_percent': {{ test_result.grain_8_percent }},{% endif %}
+                {% if test_result.grain_4_percent %}'grain_4_percent': {{ test_result.grain_4_percent }},{% endif %}
+                {% if test_result.dust_initial_weight %}'dust_initial_weight': {{ test_result.dust_initial_weight }},{% endif %}
+                {% if test_result.dust_after_weight %}'dust_after_weight': {{ test_result.dust_after_weight }},{% endif %}
+                {% if test_result.dust_percent %}'dust_percent': {{ test_result.dust_percent }},{% endif %}
+                
+                // Глина в комках
+                {% if test_result.clay_initial_weight %}'clay_initial_weight': {{ test_result.clay_initial_weight }},{% endif %}
+                {% if test_result.clay_weight %}'clay_weight': {{ test_result.clay_weight }},{% endif %}
+                {% if test_result.clay_percent %}'clay_percent': {{ test_result.clay_percent }},{% endif %}
+                
+                // Влажность
+                {% if test_result.humidity_1_container %}'humidity_1_container': {{ test_result.humidity_1_container }},{% endif %}
+                {% if test_result.humidity_1_with_sand %}'humidity_1_with_sand': {{ test_result.humidity_1_with_sand }},{% endif %}
+                {% if test_result.humidity_1_after_dry %}'humidity_1_after_dry': {{ test_result.humidity_1_after_dry }},{% endif %}
+                {% if test_result.humidity_1_value %}'humidity_1_value': {{ test_result.humidity_1_value }},{% endif %}
+                {% if test_result.humidity_2_container %}'humidity_2_container': {{ test_result.humidity_2_container }},{% endif %}
+                {% if test_result.humidity_2_with_sand %}'humidity_2_with_sand': {{ test_result.humidity_2_with_sand }},{% endif %}
+                {% if test_result.humidity_2_after_dry %}'humidity_2_after_dry': {{ test_result.humidity_2_after_dry }},{% endif %}
+                {% if test_result.humidity_2_value %}'humidity_2_value': {{ test_result.humidity_2_value }},{% endif %}
+                {% if test_result.humidity_average %}'humidity_average': {{ test_result.humidity_average }},{% endif %}
+                
+                // Набухание глины
+                {% if test_result.clay_swell_1_initial %}'clay_swell_1_initial': {{ test_result.clay_swell_1_initial }},{% endif %}
+                {% if test_result.clay_swell_1_after %}'clay_swell_1_after': {{ test_result.clay_swell_1_after }},{% endif %}
+                {% if test_result.clay_swell_1_k %}'clay_swell_1_k': {{ test_result.clay_swell_1_k }},{% endif %}
+                {% if test_result.clay_swell_2_initial %}'clay_swell_2_initial': {{ test_result.clay_swell_2_initial }},{% endif %}
+                {% if test_result.clay_swell_2_after %}'clay_swell_2_after': {{ test_result.clay_swell_2_after }},{% endif %}
+                {% if test_result.clay_swell_2_k %}'clay_swell_2_k': {{ test_result.clay_swell_2_k }},{% endif %}
+                {% if test_result.clay_swell_average_k %}'clay_swell_average_k': {{ test_result.clay_swell_average_k }},{% endif %}
+                {% if test_result.clay_swell_content %}'clay_swell_content': {{ test_result.clay_swell_content }},{% endif %}
+                
+                // Сита - веса
+                {% if test_result.sieve_2_weight %}'sieve_2_weight': {{ test_result.sieve_2_weight }},{% endif %}
+                {% if test_result.sieve_1_weight %}'sieve_1_weight': {{ test_result.sieve_1_weight }},{% endif %}
+                {% if test_result.sieve_05_weight %}'sieve_05_weight': {{ test_result.sieve_05_weight }},{% endif %}
+                {% if test_result.sieve_025_weight %}'sieve_025_weight': {{ test_result.sieve_025_weight }},{% endif %}
+                {% if test_result.sieve_0125_weight %}'sieve_0125_weight': {{ test_result.sieve_0125_weight }},{% endif %}
+                
+                // Насыпная плотность
+                {% if test_result.bulk_1_volume %}'bulk_1_volume': {{ test_result.bulk_1_volume }},{% endif %}
+                {% if test_result.bulk_1_empty %}'bulk_1_empty': {{ test_result.bulk_1_empty }},{% endif %}
+                {% if test_result.bulk_1_full %}'bulk_1_full': {{ test_result.bulk_1_full }},{% endif %}
+                {% if test_result.bulk_2_volume %}'bulk_2_volume': {{ test_result.bulk_2_volume }},{% endif %}
+                {% if test_result.bulk_2_empty %}'bulk_2_empty': {{ test_result.bulk_2_empty }},{% endif %}
+                {% if test_result.bulk_2_full %}'bulk_2_full': {{ test_result.bulk_2_full }},{% endif %}
+                
+                // Истинная плотность
+                {% if test_result.actual_1_empty %}'actual_1_empty': {{ test_result.actual_1_empty }},{% endif %}
+                {% if test_result.actual_1_water %}'actual_1_water': {{ test_result.actual_1_water }},{% endif %}
+                {% if test_result.actual_1_sand %}'actual_1_sand': {{ test_result.actual_1_sand }},{% endif %}
+                {% if test_result.actual_1_full %}'actual_1_full': {{ test_result.actual_1_full }},{% endif %}
+                {% if test_result.actual_2_empty %}'actual_2_empty': {{ test_result.actual_2_empty }},{% endif %}
+                {% if test_result.actual_2_water %}'actual_2_water': {{ test_result.actual_2_water }},{% endif %}
+                {% if test_result.actual_2_sand %}'actual_2_sand': {{ test_result.actual_2_sand }},{% endif %}
+                {% if test_result.actual_2_full %}'actual_2_full': {{ test_result.actual_2_full }},{% endif %}
+                
+                // Строковые поля
+                {% if test_result.humidity_1_number %}'humidity_1_number': '{{ test_result.humidity_1_number }}',{% endif %}
+                {% if test_result.humidity_2_number %}'humidity_2_number': '{{ test_result.humidity_2_number }}',{% endif %}
+                {% if test_result.actual_1_number %}'actual_1_number': '{{ test_result.actual_1_number }}',{% endif %}
+                {% if test_result.actual_2_number %}'actual_2_number': '{{ test_result.actual_2_number }}',{% endif %}
+            };
+            
+            // Устанавливаем значения в поля
+            for (const [fieldName, value] of Object.entries(savedData)) {
+                const element = document.getElementById(fieldName);
+                if (element) {
+                    element.value = value;
+                    console.log(`Loaded ${fieldName}: ${value}`);
+                }
+            }
+            {% endif %}
+        }
+    </script>
+</body>
+</html>

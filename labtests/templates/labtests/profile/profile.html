@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Профиль пользователя</h1>
+    
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ user.email }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Имя</label>
+                            <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Отдел</label>
+                            <input type="text" class="form-control" name="department" value="{{ profile.department }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Должность</label>
+                            <input type="text" class="form-control" name="position" value="{{ profile.position }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Телефон</label>
+                            <input type="text" class="form-control" name="phone" value="{{ profile.phone }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Дата регистрации</label>
+                            <input type="text" class="form-control" value="{{ user.date_joined|date:'d.m.Y H:i' }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    <a href="{% url 'password_change' %}" class="btn btn-secondary">Изменить пароль</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Статистика</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h3>{{ total_samples }}</h3>
+                        <p>Всего образцов</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h3>{{ in_progress_samples }}</h3>
+                        <p>В работе</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <h3>{{ completed_samples }}</h3>
+                        <p>Завершено</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Последние образцы</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>№ образца</th>
+                            <th>Дата отбора</th>
+                            <th>Материал</th>
+                            <th>ГОСТ</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in recent_samples %}
+                        <tr>
+                            <td>{{ sample.sample_number }}</td>
+                            <td>{{ sample.sampling_date|date:'d.m.Y' }}</td>
+                            <td>{{ sample.material.name }}</td>
+                            <td>{{ sample.gost.number }}</td>
+                            <td>
+                                {% if sample.status == 'draft' %}
+                                    <span class="badge bg-secondary">Черновик</span>
+                                {% elif sample.status == 'in_progress' %}
+                                    <span class="badge bg-warning">В работе</span>
+                                {% else %}
+                                    <span class="badge bg-success">Завершено</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if sample.status == 'in_progress' %}
+                                    <a href="{% url 'sample_test_form' sample.pk %}" class="btn btn-sm btn-primary">
+                                        Редактировать
+                                    </a>
+                                {% elif sample.status == 'completed' %}
+                                    <a href="{% url 'sample_test_results' sample.pk %}" class="btn btn-sm btn-info">
+                                        Результаты
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Нет образцов</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

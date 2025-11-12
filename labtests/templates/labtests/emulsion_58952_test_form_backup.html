@@ -1,0 +1,720 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений (Эмульсия по ГОСТ 58952.1-2020)</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        input[type="number"], input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            height: 35px;
+        }
+        
+        input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .info-table {
+            margin-bottom: 30px;
+        }
+        
+        .info-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            width: 30%;
+            background-color: #f8f9fa;
+        }
+        
+        .info-table input {
+            text-align: left;
+            padding-left: 10px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        
+        .section-footer {
+            text-align: right;
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Убираем стрелки в числовых полях */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        .input-alert {
+            background-color: #ffcccc !important;
+        }
+        
+        .cylinder-table {
+            display: inline-table;
+            width: 48%;
+            margin-right: 2%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лист измерений (Эмульсия {% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %} по ГОСТ 58952.1-2020)</h1>
+        
+        <!-- Информация об образце -->
+        <table class="info-table">
+            <tr>
+                <td>Номер:</td>
+                <td><input type="text" value="{{ sample.sample_number }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата отбора:</td>
+                <td><input type="text" value="{{ sample.sampling_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Заказчик:</td>
+                <td><input type="text" value="{{ sample.customer }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию:</td>
+                <td><input type="text" value="{{ sample.received_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование материала:</td>
+                <td><input type="text" value="Эмульсия" readonly></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала:</td>
+                <td><input type="text" value="{{ sample.supplier }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование смеси:</td>
+                <td><input type="text" value="{% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта:</td>
+                <td><input type="text" value="{{ sample.object_name }}" readonly></td>
+            </tr>
+        </table>
+        
+        <form method="post" action="{% url 'sample_test_form' sample.pk %}" id="emulsion-58952-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            <!-- ОБЛАСТЬ ПРИМЕНЕНИЯ -->
+            <h2>Область применения</h2>
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Специальные области применения</td>
+                        <td>
+                            <select name="apply_area" id="apply_area">
+                                <!-- Опции будут заполнены через JavaScript в зависимости от типа эмульсии -->
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- ИНДЕКС РАСПАДА -->
+            <h2>Индекс распада</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Масса чаши со шпателем, г</td>
+                        <td><input type="number" step="0.01" name="decay_index_w1" id="decay_index_w1" value="{{ test_result.decay_index_w1|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса чаши со шпателем и с эмульсией, г</td>
+                        <td><input type="number" step="0.01" name="decay_index_w2" id="decay_index_w2" value="{{ test_result.decay_index_w2|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса чаши со шпателем, эмульсией и кварцевым песком, г</td>
+                        <td><input type="number" step="0.01" name="decay_index_w3" id="decay_index_w3" value="{{ test_result.decay_index_w3|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Индекс распада</td>
+                        <td><input type="number" step="0.01" name="decay_index_value" id="decay_index_value" value="{{ test_result.decay_index_value|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- СОДЕРЖАНИЕ ВЯЖУЩЕГО С ЭМУЛЬГАТОРОМ -->
+            <h2>Содержание вяжущего с эмульгатором</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Масса чаши, г</td>
+                        <td><input type="number" step="0.01" name="binder_content_w1" id="binder_content_w1" value="{{ test_result.binder_content_w1|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td><input type="number" step="0.01" name="binder_content_w2" id="binder_content_w2" value="{{ test_result.binder_content_w2|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса чаши с эмульсией после выпаривания, г</td>
+                        <td><input type="number" step="0.01" name="binder_content_w3" id="binder_content_w3" value="{{ test_result.binder_content_w3|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Содержание вяжущего с эмульгатором, %</td>
+                        <td><input type="number" step="0.01" name="binder_content_value" id="binder_content_value" value="{{ test_result.binder_content_value|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ОСТАТОК НА СИТЕ 0,14 -->
+            <h2>Остаток на сите 0,14</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Масса сита 0,14, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w1" id="remaining_w1" value="{{ test_result.remaining_w1|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса стеклянного стакана, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w2" id="remaining_w2" value="{{ test_result.remaining_w2|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w3" id="remaining_w3" value="{{ test_result.remaining_w3|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса стакана с остатком эмульсии, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w4" id="remaining_w4" value="{{ test_result.remaining_w4|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w5" id="remaining_w5" value="{{ test_result.remaining_w5|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Остаток на сите, %</td>
+                        <td><input type="number" step="0.01" name="remaining_value" id="remaining_value" value="{{ test_result.remaining_value|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ОСТАТОК НА СИТЕ 0,14 ПОСЛЕ 7 СУТОК -->
+            <h2>Остаток на сите 0,14 после 7 суток</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Масса сита 0,14, г</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_w1" id="remaining_after7_w1" value="{{ test_result.remaining_after7_w1|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса стеклянного стакана, г</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_w2" id="remaining_after7_w2" value="{{ test_result.remaining_after7_w2|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_w3" id="remaining_after7_w3" value="{{ test_result.remaining_after7_w3|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса стакана с остатком эмульсии, г</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_w4" id="remaining_after7_w4" value="{{ test_result.remaining_after7_w4|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_w5" id="remaining_after7_w5" value="{{ test_result.remaining_after7_w5|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Остаток на сите, %</td>
+                        <td><input type="number" step="0.01" name="remaining_after7_value" id="remaining_after7_value" value="{{ test_result.remaining_after7_value|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- УСТОЙЧИВОСТЬ К РАССЛОЕНИЮ ПРИ ХРАНЕНИИ 7 СУТОК -->
+            <h2>Устойчивость к расслоению при хранении 7 суток</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Цилиндр</th>
+                        <th>1</th>
+                        <th>2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Объем эмульсии</td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder1_volume" id="resistance_cylinder1_volume" value="{{ test_result.resistance_cylinder1_volume|default:'' }}"></td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder2_volume" id="resistance_cylinder2_volume" value="{{ test_result.resistance_cylinder2_volume|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Отметка, до которой опустится эмульсия после 7 суток</td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder1_volume_after7" id="resistance_cylinder1_volume_after7" value="{{ test_result.resistance_cylinder1_volume_after7|default:'' }}"></td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder2_volume_after7" id="resistance_cylinder2_volume_after7" value="{{ test_result.resistance_cylinder2_volume_after7|default:'' }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Расслоение эмульсии, %</td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder1_delamination" id="resistance_cylinder1_delamination" value="{{ test_result.resistance_cylinder1_delamination|default_if_none:'' }}" readonly></td>
+                        <td><input type="number" step="0.01" name="resistance_cylinder2_delamination" id="resistance_cylinder2_delamination" value="{{ test_result.resistance_cylinder2_delamination|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Устойчивость к расслоению (среднее), %</td>
+                        <td><input type="number" step="0.01" name="resistance_after7_value" id="resistance_after7_value" value="{{ test_result.resistance_after7_value|default_if_none:'' }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, % не более</td>
+                        <td><input type="number" step="0.01" name="resistance_after7_max" id="resistance_after7_max" value="{{ test_result.resistance_after7_max|default:'1.0' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- АДГЕЗИЯ К МИНЕРАЛЬНОМУ МАТЕРИАЛУ -->
+            <h2>Адгезия к минеральному материалу</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Масса эмульсии, которую надо добавить к минеральному материалу, г</td>
+                        <td><input type="number" step="0.01" name="mineral_material_adhesion" id="mineral_material_adhesion" value="{{ test_result.mineral_material_adhesion|default_if_none:'' }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Характеристика пленки битумного вяжущего</th>
+                        <th>
+                            <select name="visual_quality" id="visual_quality">
+                                <option value="1" {% if test_result.visual_quality == 1 %}selected{% endif %}>Хорошо</option>
+                                <option value="2" {% if test_result.visual_quality == 2 %}selected{% endif %}>Удовлетворительно</option>
+                                <option value="3" {% if test_result.visual_quality == 3 %}selected{% endif %}>Неудовлетворительно</option>
+                            </select>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Полное покрытие камней (пленка вяжущего может быть частично отдалена от острых краев и ребер)</td>
+                        <td>Хорошо (Св. 90%)</td>
+                    </tr>
+                    <tr>
+                        <td>Площадь покрытой поверхности превышает площадь непокрытой</td>
+                        <td>Удовлетворительно (от 50% до 90% включительно)</td>
+                    </tr>
+                    <tr>
+                        <td>Площадь непокрытой поверхности превышает площадь покрытой</td>
+                        <td>Неудовлетворительно (менее 50%)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn-save">Сохранить</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- JavaScript для расчетов -->
+    <script>
+        // Диагностика загруженных данных
+        console.log('=== ЗАГРУЖЕННЫЕ ДАННЫЕ ЭМУЛЬСИИ ===');
+        console.log('Образец ID: {{ sample.id }}');
+        console.log('EmulsionTestResult ID: {{ test_result.id }}');
+        console.log('Область применения: {{ test_result.apply_area }}');
+        console.log('Индекс распада:');
+        console.log('  w1={{ test_result.decay_index_w1 }}');
+        console.log('  w2={{ test_result.decay_index_w2 }}');
+        console.log('  w3={{ test_result.decay_index_w3 }}');
+        console.log('  value={{ test_result.decay_index_value }}');
+        console.log('Содержание вяжущего:');
+        console.log('  w1={{ test_result.binder_content_w1 }}');
+        console.log('  w2={{ test_result.binder_content_w2 }}');
+        console.log('  w3={{ test_result.binder_content_w3 }}');
+        console.log('  value={{ test_result.binder_content_value }}');
+        console.log('=========================');
+        // Определяем тип эмульсии и устанавливаем соответствующие опции
+        function setApplyAreaOptions() {
+            var mixName = "{% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %}";
+            var applyAreaSelect = document.getElementById('apply_area');
+            var currentValue = {{ test_result.apply_area|default:0 }};
+            
+            // Очищаем текущие опции
+            applyAreaSelect.innerHTML = '';
+            
+            // Определяем опции в зависимости от типа эмульсии
+            var options = [];
+            
+            // Нормализуем название для проверки (убираем лишние пробелы и приводим к верхнему регистру)
+            var normalizedName = mixName.toUpperCase().replace(/\s+/g, ' ').trim();
+            
+            // Отладочный вывод
+            console.log('Mix name:', mixName);
+            console.log('Normalized name:', normalizedName);
+            
+            if (normalizedName.includes('ЭБДК М') || normalizedName.includes('ЭБДК-М')) {
+                // Для ЭБДК М (согласно скриншоту)
+                options = [
+                    {value: 0, text: 'Общие'},
+                    {value: 4, text: 'Рейсаклирование'},  // Используем уникальное значение 4
+                    {value: 5, text: 'ЛЭМС'}               // Используем уникальное значение 5
+                ];
+                console.log('Применяем опции для ЭБДК М');
+            } else if (normalizedName.includes('ЭБДК Б') || normalizedName.includes('ЭБДК-Б')) {
+                // Для ЭБДК Б (согласно скриншоту)
+                options = [
+                    {value: 0, text: 'Общие'},
+                    {value: 1, text: 'Подгрунтовка'},
+                    {value: 2, text: 'Ямочный ремонт'},
+                    {value: 3, text: 'ШПО'}
+                ];
+                console.log('Применяем опции для ЭБДК Б');
+            } else if (normalizedName.includes('ЭБДК С') || normalizedName.includes('ЭБДК-С')) {
+                // Для ЭБДК С (согласно скриншоту)
+                options = [
+                    {value: 0, text: 'Общие'},
+                    {value: 2, text: 'Ямочный ремонт'},
+                    {value: 3, text: 'ШПО'}
+                ];
+                console.log('Применяем опции для ЭБДК С');
+            } else {
+                // По умолчанию (для ЭБДК В и других)
+                options = [
+                    {value: 0, text: 'Общие'},
+                    {value: 1, text: 'Подгрунтовка'},
+                    {value: 2, text: 'Ямочный ремонт'},
+                    {value: 3, text: 'ШПО'}
+                ];
+                console.log('Применяем опции по умолчанию (ЭБДК В)');
+            }
+            
+            // Добавляем опции в select
+            options.forEach(function(option) {
+                var opt = document.createElement('option');
+                opt.value = option.value;
+                opt.textContent = option.text;
+                if (option.value === currentValue) {
+                    opt.selected = true;
+                }
+                applyAreaSelect.appendChild(opt);
+            });
+            
+            // Если текущее значение не найдено в новых опциях, выбираем первую
+            if (!applyAreaSelect.value && options.length > 0) {
+                applyAreaSelect.value = options[0].value;
+            }
+            
+            // Отладочный вывод выбранных опций
+            console.log('Selected options:', options);
+            console.log('Current value:', applyAreaSelect.value);
+        }
+        
+        // Индекс распада
+        function calculateDecayIndex() {
+            var w1 = parseFloat(document.getElementById('decay_index_w1').value) || 0;
+            var w2 = parseFloat(document.getElementById('decay_index_w2').value) || 0;
+            var w3 = parseFloat(document.getElementById('decay_index_w3').value) || 0;
+            
+            if (w1 && w2 && w3 && (w2 - w1) !== 0) {
+                var decayIndex = ((w3 - w2) / (w2 - w1) * 100).toFixed(1);
+                document.getElementById('decay_index_value').value = decayIndex;
+            }
+        }
+        
+        // Содержание вяжущего
+        function calculateBinderContent() {
+            var w1 = parseFloat(document.getElementById('binder_content_w1').value) || 0;
+            var w2 = parseFloat(document.getElementById('binder_content_w2').value) || 0;
+            var w3 = parseFloat(document.getElementById('binder_content_w3').value) || 0;
+            
+            if (w1 && w2 && w3 && w2 !== 0) {
+                var binderContent = ((w3 - w1) / w2 * 100).toFixed(1);
+                document.getElementById('binder_content_value').value = binderContent;
+                
+                // Рассчитываем массу для минерального материала
+                if (binderContent > 0) {
+                    var mineralMass = (10 / binderContent * 100).toFixed(1);
+                    document.getElementById('mineral_material_adhesion').value = mineralMass;
+                }
+            }
+        }
+        
+        // Остаток на сите 0,14
+        function calculateRemaining() {
+            var w1 = parseFloat(document.getElementById('remaining_w1').value) || 0;
+            var w2 = parseFloat(document.getElementById('remaining_w2').value) || 0;
+            var w3 = parseFloat(document.getElementById('remaining_w3').value) || 0;
+            var w4 = parseFloat(document.getElementById('remaining_w4').value) || 0;
+            var w5 = parseFloat(document.getElementById('remaining_w5').value) || 0;
+            
+            if (w1 && w2 && w3 && w4 && w5) {
+                var emulsionMass = w3 - (w4 - w2);
+                if (emulsionMass > 0) {
+                    var remaining = ((w5 - w1) / emulsionMass * 100).toFixed(2);
+                    document.getElementById('remaining_value').value = remaining;
+                }
+            }
+        }
+        
+        // Остаток на сите 0,14 после 7 суток
+        function calculateRemainingAfter7() {
+            var w1 = parseFloat(document.getElementById('remaining_after7_w1').value) || 0;
+            var w2 = parseFloat(document.getElementById('remaining_after7_w2').value) || 0;
+            var w3 = parseFloat(document.getElementById('remaining_after7_w3').value) || 0;
+            var w4 = parseFloat(document.getElementById('remaining_after7_w4').value) || 0;
+            var w5 = parseFloat(document.getElementById('remaining_after7_w5').value) || 0;
+            
+            if (w1 && w2 && w3 && w4 && w5) {
+                var emulsionMass = w3 - (w4 - w2);
+                if (emulsionMass > 0) {
+                    var remaining = ((w5 - w1) / emulsionMass * 100).toFixed(2);
+                    document.getElementById('remaining_after7_value').value = remaining;
+                }
+            }
+        }
+        
+        // Расслоение цилиндра 1
+        function calculateDelamination1() {
+            var volume = parseFloat(document.getElementById('resistance_cylinder1_volume').value) || 0;
+            var volumeAfter7 = parseFloat(document.getElementById('resistance_cylinder1_volume_after7').value) || 0;
+            
+            if (volume && volumeAfter7 && volume > 0) {
+                var delamination = ((volume - volumeAfter7) / (7 * volume) * 100).toFixed(2);
+                document.getElementById('resistance_cylinder1_delamination').value = delamination;
+                calculateResistanceAverage();
+            }
+        }
+        
+        // Расслоение цилиндра 2
+        function calculateDelamination2() {
+            var volume = parseFloat(document.getElementById('resistance_cylinder2_volume').value) || 0;
+            var volumeAfter7 = parseFloat(document.getElementById('resistance_cylinder2_volume_after7').value) || 0;
+            
+            if (volume && volumeAfter7 && volume > 0) {
+                var delamination = ((volume - volumeAfter7) / (7 * volume) * 100).toFixed(2);
+                document.getElementById('resistance_cylinder2_delamination').value = delamination;
+                calculateResistanceAverage();
+            }
+        }
+        
+        // Среднее расслоение
+        function calculateResistanceAverage() {
+            var del1 = parseFloat(document.getElementById('resistance_cylinder1_delamination').value) || 0;
+            var del2 = parseFloat(document.getElementById('resistance_cylinder2_delamination').value) || 0;
+            
+            if (del1 || del2) {
+                var count = 0;
+                var sum = 0;
+                if (del1) { sum += del1; count++; }
+                if (del2) { sum += del2; count++; }
+                if (count > 0) {
+                    var average = (sum / count).toFixed(2);
+                    document.getElementById('resistance_after7_value').value = average;
+                }
+            }
+        }
+        
+        // Добавляем обработчики событий
+        document.addEventListener('DOMContentLoaded', function() {
+            // Устанавливаем опции для области применения
+            setApplyAreaOptions();
+            
+            // Принудительно устанавливаем значения для readonly полей при загрузке
+            // Это исправляет проблему с отображением сохраненных значений
+            var readonlyFields = [
+                'decay_index_value',
+                'binder_content_value', 
+                'mineral_material_adhesion',
+                'remaining_value',
+                'remaining_after7_value',
+                'resistance_cylinder1_delamination',
+                'resistance_cylinder2_delamination',
+                'resistance_after7_value'
+            ];
+            
+            // Функция для принудительной установки значений
+            function forceSetReadonlyValues() {
+                readonlyFields.forEach(function(fieldId) {
+                    var field = document.getElementById(fieldId);
+                    if (field) {
+                        // Получаем значение из атрибута value
+                        var currentValue = field.getAttribute('value');
+                        if (currentValue && currentValue !== '') {
+                            // Устанавливаем значение напрямую через свойство
+                            field.value = currentValue;
+                            // Дополнительно устанавливаем через setAttribute
+                            field.setAttribute('value', currentValue);
+                            console.log('Восстановлено значение для ' + fieldId + ': ' + currentValue);
+                        }
+                    }
+                });
+            }
+            
+            // Вызываем сразу
+            forceSetReadonlyValues();
+            
+            // Индекс распада
+            document.getElementById('decay_index_w1').addEventListener('input', calculateDecayIndex);
+            document.getElementById('decay_index_w2').addEventListener('input', calculateDecayIndex);
+            document.getElementById('decay_index_w3').addEventListener('input', calculateDecayIndex);
+            
+            // Содержание вяжущего
+            document.getElementById('binder_content_w1').addEventListener('input', calculateBinderContent);
+            document.getElementById('binder_content_w2').addEventListener('input', calculateBinderContent);
+            document.getElementById('binder_content_w3').addEventListener('input', calculateBinderContent);
+            
+            // Остаток на сите
+            document.getElementById('remaining_w1').addEventListener('input', calculateRemaining);
+            document.getElementById('remaining_w2').addEventListener('input', calculateRemaining);
+            document.getElementById('remaining_w3').addEventListener('input', calculateRemaining);
+            document.getElementById('remaining_w4').addEventListener('input', calculateRemaining);
+            document.getElementById('remaining_w5').addEventListener('input', calculateRemaining);
+            
+            // Остаток на сите после 7 суток
+            document.getElementById('remaining_after7_w1').addEventListener('input', calculateRemainingAfter7);
+            document.getElementById('remaining_after7_w2').addEventListener('input', calculateRemainingAfter7);
+            document.getElementById('remaining_after7_w3').addEventListener('input', calculateRemainingAfter7);
+            document.getElementById('remaining_after7_w4').addEventListener('input', calculateRemainingAfter7);
+            document.getElementById('remaining_after7_w5').addEventListener('input', calculateRemainingAfter7);
+            
+            // Устойчивость к расслоению
+            document.getElementById('resistance_cylinder1_volume').addEventListener('input', calculateDelamination1);
+            document.getElementById('resistance_cylinder1_volume_after7').addEventListener('input', calculateDelamination1);
+            document.getElementById('resistance_cylinder2_volume').addEventListener('input', calculateDelamination2);
+            document.getElementById('resistance_cylinder2_volume_after7').addEventListener('input', calculateDelamination2);
+            
+            // Вызываем расчеты при загрузке страницы
+            // Добавляем небольшую задержку для гарантии загрузки DOM
+            setTimeout(function() {
+                calculateDecayIndex();
+                calculateBinderContent();
+                calculateRemaining();
+                calculateRemainingAfter7();
+                calculateDelamination1();
+                calculateDelamination2();
+                
+                // Еще раз принудительно обновляем readonly поля после расчетов
+                forceSetReadonlyValues();
+                
+                // Подсвечиваем readonly поля
+                readonlyFields.forEach(function(fieldId) {
+                    var field = document.getElementById(fieldId);
+                    if (field) {
+                        field.style.backgroundColor = '#e9ecef';
+                    }
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>

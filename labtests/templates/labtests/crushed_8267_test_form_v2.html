@@ -1,0 +1,461 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ sample.sample_number }}_Щебень_8267</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th:has(input) {
+            padding:0px;
+            height:10px;
+        }
+
+        td:has(input) {
+            padding: 0px;
+        }
+
+        input {
+            width: 100%;
+            text-align: center;
+            height: 3rem;
+        }
+
+        input[readonly]{
+            background-color: #f5f5f5;
+            border: 1px;
+            pointer-events: none;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-alert {
+            background-color: red !important;
+        }
+
+        .btn-result {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-save {
+            border:2px solid #80ff80
+        }
+        
+        .btn-save:hover {
+            background-color: #80ff80;
+        }
+    </style>
+</head>
+<body>
+    <h1>Лист измерений (щебень {{ sample.mix.name }} по ГОСТ 8267)</h1>
+    
+    <!-- Информация об образце -->
+    <table>
+        <tbody>
+            <tr>
+                <td>Номер</td>
+                <td><input type="text" disabled value="{{ sample.sample_number }}"></td>
+            </tr>
+            <tr>
+                <td>Дата отбора</td>
+                <td><input type="date" disabled value="{{ sample.sampling_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Заказчик</td>
+                <td><input type="text" disabled value="{{ sample.customer }}"></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию</td>
+                <td><input type="date" disabled value="{{ sample.received_date|date:'Y-m-d' }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование материала</td>
+                <td><input type="text" value="Щебень" disabled></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала</td>
+                <td><input type="text" disabled value="{{ sample.supplier }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование смеси</td>
+                <td><input type="text" disabled value="{{ sample.mix.name }}"></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта</td>
+                <td><input type="text" disabled value="{{ sample.object_name }}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form id="result" method="post" action="{% url 'sample_test_form' sample.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+
+        <!-- Содержание пылевидных и глинистых частиц -->
+        <h2>Содержание пылевидных и глинистых частиц (0,063 сито)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="number" step="any" id="dust_initial_weight" name="dust_initial_weight" 
+                               value="{{ test_result.dust_initial_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса после промывки, гр</td>
+                    <td><input type="number" step="any" id="dust_after_weight" name="dust_after_weight" 
+                               value="{{ test_result.dust_after_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание п/г, %</td>
+                    <td><input type="number" step="any" readonly id="dust_content" name="dust_content" 
+                               value="{{ test_result.dust_content|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Гранулометрический состав -->
+        <h2>Гранулометрический состав</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса пробы, г</td>
+                    <td><input type="number" step="any" id="grain_compound_weight" name="grain_compound_weight" 
+                               value="{{ test_result.grain_compound_weight|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Размеры ячеек контрольных сит, мм</th>
+                    <th>1,25D</th>
+                    <th>D</th>
+                    <th>(D+d)/2</th>
+                    <th>d</th>
+                    <th>d/2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса, г</td>
+                    <td><input type="number" step="any" id="partition_0_weight" name="partition_0_weight" 
+                               value="{{ test_result.partition_0_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="partition_1_weight" name="partition_1_weight" 
+                               value="{{ test_result.partition_1_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="partition_2_weight" name="partition_2_weight" 
+                               value="{{ test_result.partition_2_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="partition_3_weight" name="partition_3_weight" 
+                               value="{{ test_result.partition_3_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="partition_4_weight" name="partition_4_weight" 
+                               value="{{ test_result.partition_4_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Частный остаток, % по массе</td>
+                    <td><input type="number" step="any" readonly id="partition_0_partial" name="partition_0_partial" 
+                               value="{{ test_result.partition_0_partial|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_1_partial" name="partition_1_partial" 
+                               value="{{ test_result.partition_1_partial|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_2_partial" name="partition_2_partial" 
+                               value="{{ test_result.partition_2_partial|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_3_partial" name="partition_3_partial" 
+                               value="{{ test_result.partition_3_partial|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_4_partial" name="partition_4_partial" 
+                               value="{{ test_result.partition_4_partial|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Проходы через сито, % по массе</td>
+                    <td><input type="number" step="any" readonly id="partition_0_passes" name="partition_0_passes" 
+                               value="{{ test_result.partition_0_passes|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_1_passes" name="partition_1_passes" 
+                               value="{{ test_result.partition_1_passes|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_2_passes" name="partition_2_passes" 
+                               value="{{ test_result.partition_2_passes|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_3_passes" name="partition_3_passes" 
+                               value="{{ test_result.partition_3_passes|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="partition_4_passes" name="partition_4_passes" 
+                               value="{{ test_result.partition_4_passes|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Содержание зерен пластинчатой (лещадной) и игловатой формы -->
+        <h2>Содержание зерен пластинчатой (лещадной) и игловатой формы</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса пробы, г</td>
+                    <td><input type="number" step="any" id="flakiness_weight" name="flakiness_weight" 
+                               value="{{ test_result.flakiness_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса лещадных зерен, г</td>
+                    <td><input type="number" step="any" id="flakiness_flaky_weight" name="flakiness_flaky_weight" 
+                               value="{{ test_result.flakiness_flaky_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Лещадность, %</td>
+                    <td><input type="number" step="any" readonly id="flakiness_value" name="flakiness_value" 
+                               value="{{ test_result.flakiness_value|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Группа щебня по лещадности</td>
+                    <td><input type="text" readonly id="flakiness_mark_type" name="flakiness_mark_type" 
+                               value="{{ test_result.flakiness_mark_type }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Дробимость -->
+        <h2>Дробимость</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Вид породы</td>
+                    <td>
+                        <select id="crushability_type" name="crushability_type">
+                            <option value="0" {% if test_result.crushability_type == 0 %}selected{% endif %}>Изверженные горные породы</option>
+                            <option value="1" {% if test_result.crushability_type == 1 %}selected{% endif %}>Осадочные и метаморфические горные породы</option>
+                            <option value="2" {% if test_result.crushability_type == 2 %}selected{% endif %}>Щебень из гравия и гравий</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Масса пробы, г</td>
+                    <td><input type="number" step="any" id="crushability_weight" name="crushability_weight" 
+                               value="{{ test_result.crushability_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса зерен оставшихся на контрольном сите после дробления, гр</td>
+                    <td><input type="number" step="any" id="crushability_after_weight" name="crushability_after_weight" 
+                               value="{{ test_result.crushability_after_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Дробимость, %</td>
+                    <td><input type="number" step="any" readonly id="crushability_value" name="crushability_value" 
+                               value="{{ test_result.crushability_value|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Марка по дробимости</td>
+                    <td><input type="text" readonly id="crushability_mark_type" name="crushability_mark_type" 
+                               value="{{ test_result.crushability_mark_type }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Насыпная плотность -->
+        <h2>Насыпная плотность</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Объем сосуда, см3</td>
+                    <td><input type="number" step="any" id="bulk_density_0_volume" name="bulk_density_0_volume" 
+                               value="{{ test_result.bulk_density_0_volume|format_float }}"></td>
+                    <td><input type="number" step="any" id="bulk_density_1_volume" name="bulk_density_1_volume" 
+                               value="{{ test_result.bulk_density_1_volume|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустого сосуда, гр</td>
+                    <td><input type="number" step="any" id="bulk_density_0_empty_weight" name="bulk_density_0_empty_weight" 
+                               value="{{ test_result.bulk_density_0_empty_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="bulk_density_1_empty_weight" name="bulk_density_1_empty_weight" 
+                               value="{{ test_result.bulk_density_1_empty_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса сосуда с пробой, гр</td>
+                    <td><input type="number" step="any" id="bulk_density_0_weight" name="bulk_density_0_weight" 
+                               value="{{ test_result.bulk_density_0_weight|format_float }}"></td>
+                    <td><input type="number" step="any" id="bulk_density_1_weight" name="bulk_density_1_weight" 
+                               value="{{ test_result.bulk_density_1_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Насыпная плотность, гр/см3</td>
+                    <td><input type="number" step="any" readonly id="bulk_density_0_density_value" name="bulk_density_0_density_value" 
+                               value="{{ test_result.bulk_density_0_density_value|format_float }}"></td>
+                    <td><input type="number" step="any" readonly id="bulk_density_1_density_value" name="bulk_density_1_density_value" 
+                               value="{{ test_result.bulk_density_1_density_value|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><input type="number" step="any" readonly id="bulk_density_average" name="bulk_density_average" 
+                                         value="{{ test_result.bulk_density_average|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Содержание зерен слабых пород -->
+        <h2>Содержание зерен слабых пород</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="number" step="any" id="weak_rock_initial_weight" name="weak_rock_initial_weight" 
+                               value="{{ test_result.weak_rock_initial_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса слабых зерен, гр</td>
+                    <td><input type="number" step="any" id="weak_rock_weight" name="weak_rock_weight" 
+                               value="{{ test_result.weak_rock_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание, %</td>
+                    <td><input type="number" step="any" readonly id="weak_rock_content" name="weak_rock_content" 
+                               value="{{ test_result.weak_rock_content|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Содержание глины в комках -->
+        <h2>Содержание глины в комках</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса начальная, гр</td>
+                    <td><input type="number" step="any" id="clay_initial_weight" name="clay_initial_weight" 
+                               value="{{ test_result.clay_initial_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса глины в комках, гр</td>
+                    <td><input type="number" step="any" id="clay_weight" name="clay_weight" 
+                               value="{{ test_result.clay_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Содержание глины в комках, %</td>
+                    <td><input type="number" step="any" readonly id="clay_content" name="clay_content" 
+                               value="{{ test_result.clay_content|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <!-- Средняя плотность -->
+        <h2>Средняя плотность</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Масса высушенной пробы, гр</td>
+                    <td><input type="number" step="any" id="average_density_dried_weight" name="average_density_dried_weight" 
+                               value="{{ test_result.average_density_dried_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пробы в насыщенном водой состоянии на воздухе, гр</td>
+                    <td><input type="number" step="any" id="average_density_weight_in_air" name="average_density_weight_in_air" 
+                               value="{{ test_result.average_density_weight_in_air|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса корзины и пробы в насыщенном водой состоянии в воде, гр</td>
+                    <td><input type="number" step="any" id="average_density_weight_in_water" name="average_density_weight_in_water" 
+                               value="{{ test_result.average_density_weight_in_water|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Масса пустой корзины, гр</td>
+                    <td><input type="number" step="any" id="average_density_empty_basket_weight" name="average_density_empty_basket_weight" 
+                               value="{{ test_result.average_density_empty_basket_weight|format_float }}"></td>
+                </tr>
+                <tr>
+                    <td>Средняя плотность</td>
+                    <td><input type="number" step="any" readonly id="average_density_value" name="average_density_value" 
+                               value="{{ test_result.average_density_value|format_float }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: right;">Испытания провел(а): _____________</div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn-result btn-save" title="Сохранить результаты">
+                <span style="margin-right:5px;"><i class="fas fa-save" style="color: #6C757D"></i></span>
+                <span style="color: #6C757D">Сохранить</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- JavaScript для расчетов -->
+    <script src="{% static 'js/crushed_8267_calculations_v2.js' %}"></script>
+</body>
+</html>

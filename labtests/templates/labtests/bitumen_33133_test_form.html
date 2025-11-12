@@ -1,0 +1,717 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений (Битум по ГОСТ 33133-2014)</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        input[type="number"], input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            height: 35px;
+        }
+        
+        input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .info-table {
+            margin-bottom: 30px;
+        }
+        
+        .info-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            width: 30%;
+            background-color: #f8f9fa;
+        }
+        
+        .info-table input {
+            text-align: left;
+            padding-left: 10px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        
+        .section-footer {
+            text-align: right;
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Убираем стрелки в числовых полях */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        .input-alert {
+            background-color: #ffcccc !important;
+        }
+        
+        .help-icon {
+            font-size: 20px;
+            cursor: pointer;
+            vertical-align: top;
+            color: #007bff;
+        }
+        
+        .help-text {
+            display: none;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+            margin: 10px 0 10px 30px;
+            background-color: #f0f8ff;
+        }
+        
+        .container-results {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .container-table {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лист измерений (Битум {% if sample.mix %}{{ sample.mix.name }}{% else %}БНД 130/120{% endif %} по ГОСТ 33133-2014)</h1>
+        
+        <!-- Информация об образце -->
+        <table class="info-table">
+            <tr>
+                <td>Номер:</td>
+                <td><input type="text" value="{{ sample.sample_number }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата отбора:</td>
+                <td><input type="text" value="{{ sample.sampling_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Заказчик:</td>
+                <td><input type="text" value="{{ sample.customer }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию:</td>
+                <td><input type="text" value="{{ sample.received_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование материала:</td>
+                <td><input type="text" value="Битум" readonly></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала:</td>
+                <td><input type="text" value="{{ sample.supplier }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование смеси:</td>
+                <td><input type="text" value="{% if sample.mix %}{{ sample.mix.name }}{% else %}БНД 130/120{% endif %}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта:</td>
+                <td><input type="text" value="{{ sample.object_name }}" readonly></td>
+            </tr>
+        </table>
+        
+        <form method="post" action="{% url 'sample_test_form' sample.pk %}" id="bitumen-33133-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            <!-- ГЛУБИНА ПРОНИКАНИЯ ИГЛЫ ПРИ 25°С -->
+            <h2>
+                Глубина проникания иглы при 25°С
+                <span onclick="toggleHelp('help-needle')" class="help-icon">ℹ</span>
+            </h2>
+            <div id="help-needle" class="help-text">
+                ◉ Нагреть образец в сушильном шкафу до температуры (105 ± 5) °С<br>
+                ◉ Перемешивая стеклянной или металлической палочкой довести образец до температуры испытания<br>
+                ◉ Расплавленный битум процедить через сито с металлической сеткой<br>
+                ◉ Налить в две пенетрационные чашки так, чтобы поверхность битума была не более чем на 5 мм ниже верхнего края<br>
+                ◉ Тщательно перемешать до полного удаления пузырьков воздуха<br>
+                ◉ Охладить на воздухе при температуре (21 ± 4) °С, защищая образец от пыли. Продолжительность охлаждения — (75 ± 15) мин<br>
+                ◉ Поместить в емкость для термостатирования (баню) с температурой 25°С на (75 ± 15) мин
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, мм</td>
+                        <td><input type="number" step="0.1" name="needle_deep" id="needle_deep" value="{{ test_result.needle_deep|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, мм</td>
+                        <td>
+                            <input type="text" id="needle_deep_range" value="{{ test_result.needle_deep_min|format_float }}-{{ test_result.needle_deep_max|format_float }}" readonly>
+                            <input type="hidden" name="needle_deep_min" value="{{ test_result.needle_deep_min|format_float }}">
+                            <input type="hidden" name="needle_deep_max" value="{{ test_result.needle_deep_max|format_float }}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ТЕМПЕРАТУРА РАЗМЯГЧЕНИЯ ПО КОЛЬЦУ И ШАРУ -->
+            <h2>Температура размягчения по кольцу и шару</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, °С</td>
+                        <td><input type="number" step="0.1" name="softening_temperature" id="softening_temperature" value="{{ test_result.softening_temperature|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, °С не ниже</td>
+                        <td><input type="number" step="0.1" name="softening_temperature_min" id="softening_temperature_min" value="{{ test_result.softening_temperature_min|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- РАСТЯЖИМОСТЬ ПРИ 0°С -->
+            <h2>Растяжимость при 0°С</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, см</td>
+                        <td><input type="number" step="0.1" name="extensibility" id="extensibility" value="{{ test_result.extensibility|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, см не менее</td>
+                        <td>
+                            {% if test_result.extensibility_min %}
+                                <input type="number" step="0.1" name="extensibility_min" id="extensibility_min" value="{{ test_result.extensibility_min|format_float }}" readonly>
+                            {% else %}
+                                <input type="text" name="extensibility_min" id="extensibility_min" value="Не определяется" readonly style="text-align: center;">
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ТЕМПЕРАТУРА ХРУПКОСТИ -->
+            <h2>Температура хрупкости</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, °С</td>
+                        <td><input type="number" step="0.1" name="fragility_temperature" id="fragility_temperature" value="{{ test_result.fragility_temperature|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, °С не выше</td>
+                        <td><input type="number" step="0.1" name="fragility_temperature_max" id="fragility_temperature_max" value="{{ test_result.fragility_temperature_max|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ТЕМПЕРАТУРА ВСПЫШКИ -->
+            <h2>Температура вспышки</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, °С</td>
+                        <td><input type="number" step="0.1" name="flash_temperature" id="flash_temperature" value="{{ test_result.flash_temperature|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, °С не ниже</td>
+                        <td><input type="number" step="0.1" name="flash_temperature_min" id="flash_temperature_min" value="{{ test_result.flash_temperature_min|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ИЗМЕНЕНИЕ МАССЫ ОБРАЗЦА ПОСЛЕ СТАРЕНИЯ -->
+            <h2>Изменение массы образца после старения</h2>
+            
+            <div class="container-results">
+                <!-- Контейнер А -->
+                <div class="container-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th colspan="2">Для контейнера А</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: left;">Масса стеклянного контейнера, г</td>
+                                <td><input type="number" step="0.01" name="container_a_weight" id="container_a_weight" value="{{ test_result.container_a_weight|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Масса контейнера с битумом до старения, г</td>
+                                <td><input type="number" step="0.01" name="container_a_bitumen_before" id="container_a_bitumen_before" value="{{ test_result.container_a_bitumen_before|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Масса контейнера с битумом после старения, г</td>
+                                <td><input type="number" step="0.01" name="container_a_bitumen_after" id="container_a_bitumen_after" value="{{ test_result.container_a_bitumen_after|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; font-weight: bold;">Результат, %</td>
+                                <td><input type="number" step="0.01" name="container_a_result" id="container_a_result" value="{{ test_result.container_a_result|format_float }}" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Контейнер B -->
+                <div class="container-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th colspan="2">Для контейнера B</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: left;">Масса стеклянного контейнера, г</td>
+                                <td><input type="number" step="0.01" name="container_b_weight" id="container_b_weight" value="{{ test_result.container_b_weight|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Масса контейнера с битумом до старения, г</td>
+                                <td><input type="number" step="0.01" name="container_b_bitumen_before" id="container_b_bitumen_before" value="{{ test_result.container_b_bitumen_before|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Масса контейнера с битумом после старения, г</td>
+                                <td><input type="number" step="0.01" name="container_b_bitumen_after" id="container_b_bitumen_after" value="{{ test_result.container_b_bitumen_after|format_float }}"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; font-weight: bold;">Результат, %</td>
+                                <td><input type="number" step="0.01" name="container_b_result" id="container_b_result" value="{{ test_result.container_b_result|format_float }}" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Общий итог -->
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Общий итог</td>
+                        <td><input type="number" step="0.01" name="weight_change" id="weight_change" value="{{ test_result.weight_change|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, % не более</td>
+                        <td><input type="number" step="0.01" name="weight_change_max" id="weight_change_max" value="{{ test_result.weight_change_max|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ИЗМЕНЕНИЕ ТЕМПЕРАТУРЫ РАЗМЯГЧЕНИЯ ПОСЛЕ СТАРЕНИЯ -->
+            <h2>Изменение температуры размягчения после старения</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Фактическое значение, °С</td>
+                        <td><input type="number" step="0.1" name="softening_temperature_change" id="softening_temperature_change" value="{{ test_result.softening_temperature_change|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Допуск, °С не более</td>
+                        <td><input type="number" step="0.1" name="softening_temperature_change_max" id="softening_temperature_change_max" value="{{ test_result.softening_temperature_change_max|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn-save">Сохранить</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- JavaScript для расчетов -->
+    <script src="{% static 'js/bitumen_33133_calculations.js' %}"></script>
+    
+    <!-- Встроенный JavaScript как резервный вариант -->
+    <script>
+    // Инициализация расчетов сразу при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM загружен, инициализируем расчеты битума');
+            
+            // === РАСЧЕТ ИЗМЕНЕНИЯ МАССЫ ДЛЯ КОНТЕЙНЕРА А (ГОСТ 33140) ===
+            function calculateContainerA() {
+                // m_ст - масса пустого контейнера (стеклянного), г
+                const m_st = parseFloat(document.getElementById('container_a_weight')?.value) || 0;
+                // m_до - масса контейнера с битумом до старения, г
+                const m_do = parseFloat(document.getElementById('container_a_bitumen_before')?.value) || 0;
+                // m_после - масса контейнера с битумом после старения, г
+                const m_posle = parseFloat(document.getElementById('container_a_bitumen_after')?.value) || 0;
+                
+                console.log('Контейнер A:', {
+                    'm_ст': m_st,
+                    'm_до': m_do, 
+                    'm_после': m_posle
+                });
+                
+                // Проверяем корректность данных
+                if (m_st > 0 && m_do > m_st && m_posle > 0) {
+                    // Формула по ГОСТ 33140:
+                    // Δm = (m_до - m_после) / (m_до - m_ст) × 100%
+                    const result = ((m_do - m_posle) / (m_do - m_st) * 100).toFixed(2);
+                    
+                    const resultField = document.getElementById('container_a_result');
+                    if (resultField) {
+                        resultField.value = result;
+                        console.log('Результат A (Δm):', result + '%');
+                    }
+                    
+                    calculateWeightChange();
+                } else {
+                    console.log('Некорректные данные для контейнера A');
+                    if (m_do <= m_st) {
+                        console.log('Масса контейнера с битумом должна быть больше массы пустого контейнера');
+                    }
+                }
+            }
+            
+            // === РАСЧЕТ ИЗМЕНЕНИЯ МАССЫ ДЛЯ КОНТЕЙНЕРА B (ГОСТ 33140) ===
+            function calculateContainerB() {
+                // m_ст - масса пустого контейнера (стеклянного), г
+                const m_st = parseFloat(document.getElementById('container_b_weight')?.value) || 0;
+                // m_до - масса контейнера с битумом до старения, г
+                const m_do = parseFloat(document.getElementById('container_b_bitumen_before')?.value) || 0;
+                // m_после - масса контейнера с битумом после старения, г
+                const m_posle = parseFloat(document.getElementById('container_b_bitumen_after')?.value) || 0;
+                
+                console.log('Контейнер B:', {
+                    'm_ст': m_st,
+                    'm_до': m_do,
+                    'm_после': m_posle
+                });
+                
+                // Проверяем корректность данных
+                if (m_st > 0 && m_do > m_st && m_posle > 0) {
+                    // Формула по ГОСТ 33140:
+                    // Δm = (m_до - m_после) / (m_до - m_ст) × 100%
+                    const result = ((m_do - m_posle) / (m_do - m_st) * 100).toFixed(2);
+                    
+                    const resultField = document.getElementById('container_b_result');
+                    if (resultField) {
+                        resultField.value = result;
+                        console.log('Результат B (Δm):', result + '%');
+                    }
+                    
+                    calculateWeightChange();
+                } else {
+                    console.log('Некорректные данные для контейнера B');
+                    if (m_do <= m_st) {
+                        console.log('Масса контейнера с битумом должна быть больше массы пустого контейнера');
+                    }
+                }
+            }
+            
+            // === РАСЧЕТ ОБЩЕГО ИЗМЕНЕНИЯ МАССЫ ===
+            function calculateWeightChange() {
+                const resultA = parseFloat(document.getElementById('container_a_result')?.value) || 0;
+                const resultB = parseFloat(document.getElementById('container_b_result')?.value) || 0;
+                const max = parseFloat(document.getElementById('weight_change_max')?.value) || 0.8;
+                
+                if (resultA > 0 && resultB > 0) {
+                    const average = ((resultA + resultB) / 2).toFixed(2);
+                    const field = document.getElementById('weight_change');
+                    
+                    if (field) {
+                        field.value = average;
+                        console.log('Общий итог:', average);
+                        
+                        // Проверка превышения нормы
+                        if (parseFloat(average) > max) {
+                            field.classList.add('input-alert');
+                        } else {
+                            field.classList.remove('input-alert');
+                        }
+                    }
+                }
+            }
+            
+            // Привязка обработчиков для контейнера А
+            ['container_a_weight', 'container_a_bitumen_before', 'container_a_bitumen_after'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', calculateContainerA);
+                    element.addEventListener('change', calculateContainerA);
+                }
+            });
+            
+            // Привязка обработчиков для контейнера B
+            ['container_b_weight', 'container_b_bitumen_before', 'container_b_bitumen_after'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', calculateContainerB);
+                    element.addEventListener('change', calculateContainerB);
+                }
+            });
+            
+            // Инициализация при загрузке
+            calculateContainerA();
+            calculateContainerB();
+            
+            console.log('Встроенный скрипт для расчетов битума активирован');
+            
+            // === ФУНКЦИИ ВАЛИДАЦИИ ===
+            
+            // Проверка глубины проникания иглы
+            function validateNeedleDeep() {
+                const value = parseFloat(document.getElementById('needle_deep')?.value) || 0;
+                const min = parseFloat(document.getElementById('needle_deep_min')?.value) || 36;
+                const max = parseFloat(document.getElementById('needle_deep_max')?.value) || 50;
+                const field = document.getElementById('needle_deep');
+                
+                if (field && value > 0) {
+                    if (value < min || value > max) {
+                        field.classList.add('input-alert');
+                        console.log(`Глубина проникания ${value} вне диапазона ${min}-${max}`);
+                    } else {
+                        field.classList.remove('input-alert');
+                    }
+                }
+            }
+            
+            // Проверка температуры размягчения
+            function validateSofteningTemperature() {
+                const value = parseFloat(document.getElementById('softening_temperature')?.value) || 0;
+                const min = parseFloat(document.getElementById('softening_temperature_min')?.value) || 53;
+                const field = document.getElementById('softening_temperature');
+                
+                if (field && value > 0) {
+                    if (value < min) {
+                        field.classList.add('input-alert');
+                    } else {
+                        field.classList.remove('input-alert');
+                    }
+                }
+            }
+            
+            // Проверка растяжимости
+            function validateExtensibility() {
+                const value = parseFloat(document.getElementById('extensibility')?.value) || 0;
+                const minField = document.getElementById('extensibility_min');
+                
+                // Проверяем, является ли минимальное значение числом
+                if (minField && minField.type === 'number') {
+                    const min = parseFloat(minField.value) || 0;
+                    const field = document.getElementById('extensibility');
+                    
+                    if (field && value > 0 && min > 0) {
+                        if (value < min) {
+                            field.classList.add('input-alert');
+                        } else {
+                            field.classList.remove('input-alert');
+                        }
+                    }
+                }
+            }
+            
+            // Проверка температуры хрупкости
+            function validateFragilityTemperature() {
+                const value = parseFloat(document.getElementById('fragility_temperature')?.value) || 0;
+                const max = parseFloat(document.getElementById('fragility_temperature_max')?.value) || -14;
+                const field = document.getElementById('fragility_temperature');
+                
+                if (field && value !== 0) {
+                    if (value > max) {
+                        field.classList.add('input-alert');
+                    } else {
+                        field.classList.remove('input-alert');
+                    }
+                }
+            }
+            
+            // Проверка температуры вспышки
+            function validateFlashTemperature() {
+                const value = parseFloat(document.getElementById('flash_temperature')?.value) || 0;
+                const min = parseFloat(document.getElementById('flash_temperature_min')?.value) || 230;
+                const field = document.getElementById('flash_temperature');
+                
+                if (field && value > 0) {
+                    if (value < min) {
+                        field.classList.add('input-alert');
+                    } else {
+                        field.classList.remove('input-alert');
+                    }
+                }
+            }
+            
+            // Проверка изменения температуры размягчения
+            function validateSofteningTemperatureChange() {
+                const value = parseFloat(document.getElementById('softening_temperature_change')?.value) || 0;
+                const max = parseFloat(document.getElementById('softening_temperature_change_max')?.value) || 6;
+                const field = document.getElementById('softening_temperature_change');
+                
+                if (field && value > 0) {
+                    if (value > max) {
+                        field.classList.add('input-alert');
+                    } else {
+                        field.classList.remove('input-alert');
+                    }
+                }
+            }
+            
+            // Привязка обработчиков валидации
+            const needleDeep = document.getElementById('needle_deep');
+            if (needleDeep) {
+                needleDeep.addEventListener('input', validateNeedleDeep);
+                needleDeep.addEventListener('change', validateNeedleDeep);
+            }
+            
+            const softeningTemp = document.getElementById('softening_temperature');
+            if (softeningTemp) {
+                softeningTemp.addEventListener('input', validateSofteningTemperature);
+                softeningTemp.addEventListener('change', validateSofteningTemperature);
+            }
+            
+            const extensibility = document.getElementById('extensibility');
+            if (extensibility) {
+                extensibility.addEventListener('input', validateExtensibility);
+                extensibility.addEventListener('change', validateExtensibility);
+            }
+            
+            const fragilityTemp = document.getElementById('fragility_temperature');
+            if (fragilityTemp) {
+                fragilityTemp.addEventListener('input', validateFragilityTemperature);
+                fragilityTemp.addEventListener('change', validateFragilityTemperature);
+            }
+            
+            const flashTemp = document.getElementById('flash_temperature');
+            if (flashTemp) {
+                flashTemp.addEventListener('input', validateFlashTemperature);
+                flashTemp.addEventListener('change', validateFlashTemperature);
+            }
+            
+            const softeningChange = document.getElementById('softening_temperature_change');
+            if (softeningChange) {
+                softeningChange.addEventListener('input', validateSofteningTemperatureChange);
+                softeningChange.addEventListener('change', validateSofteningTemperatureChange);
+            }
+            
+            // Инициализация валидации при загрузке
+            validateNeedleDeep();
+            validateSofteningTemperature();
+            validateExtensibility();
+            validateFragilityTemperature();
+            validateFlashTemperature();
+            validateSofteningTemperatureChange();
+    });
+    </script>
+</body>
+</html>

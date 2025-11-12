@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Проверка JavaScript</title>
+</head>
+<body>
+    <h1>Проверка загрузки JavaScript</h1>
+    <div id="result"></div>
+    
+    <script>
+        // Проверяем, определены ли функции
+        const result = document.getElementById('result');
+        let html = '<h2>Статус проверки:</h2><ul>';
+        
+        // Список функций для проверки
+        const functions = [
+            'calculateGrainsMore8',
+            'calculateGrainsMore4', 
+            'calculateDustAndClay',
+            'calculatePartitions',
+            'calculateClay',
+            'runAllCalculations'
+        ];
+        
+        functions.forEach(fname => {
+            if (typeof window[fname] === 'function') {
+                html += `<li style="color: green;">✓ ${fname} - загружена</li>`;
+            } else {
+                html += `<li style="color: red;">✗ ${fname} - НЕ НАЙДЕНА</li>`;
+            }
+        });
+        
+        html += '</ul>';
+        
+        // Проверяем наличие jQuery
+        if (typeof $ !== 'undefined') {
+            html += '<p style="color: green;">✓ jQuery загружен</p>';
+        } else {
+            html += '<p style="color: orange;">⚠ jQuery не загружен</p>';
+        }
+        
+        result.innerHTML = html;
+        
+        // Выводим в консоль
+        console.log('=== ПРОВЕРКА ФУНКЦИЙ ===');
+        functions.forEach(fname => {
+            console.log(`${fname}: ${typeof window[fname]}`);
+        });
+    </script>
+    
+    <h2>Проверка полей формы:</h2>
+    <button onclick="checkFields()">Проверить поля</button>
+    <div id="fields"></div>
+    
+    <script>
+        function checkFields() {
+            const fieldIds = [
+                'grain_initial_weight',
+                'grain_8_weight',
+                'grain_4_weight',
+                'grain_8_percent',
+                'grain_4_percent',
+                'dust_initial_weight',
+                'dust_after_weight',
+                'dust_percent'
+            ];
+            
+            let html = '<ul>';
+            fieldIds.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    html += `<li style="color: green;">✓ ${id} - найдено (значение: ${elem.value || 'пусто'})</li>`;
+                } else {
+                    html += `<li style="color: red;">✗ ${id} - НЕ НАЙДЕНО</li>`;
+                }
+            });
+            html += '</ul>';
+            
+            document.getElementById('fields').innerHTML = html;
+        }
+    </script>
+    
+    <h2>Загрузка скрипта напрямую:</h2>
+    <script src="/static/js/sample_test_calculations.js"></script>
+    <script>
+        // После загрузки скрипта проверяем еще раз
+        setTimeout(function() {
+            if (typeof calculateGrainsMore8 === 'function') {
+                document.body.innerHTML += '<p style="color: green; font-weight: bold;">✓ Скрипт sample_test_calculations.js успешно загружен!</p>';
+            } else {
+                document.body.innerHTML += '<p style="color: red; font-weight: bold;">✗ Скрипт не загрузился!</p>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

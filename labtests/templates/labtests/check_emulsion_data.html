@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Проверка данных эмульсии</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Проверка данных эмульсии в базе</h1>
+    
+    {% for sample in samples %}
+    <h2>Образец ID: {{ sample.id }} - {{ sample.sample_number }}</h2>
+    <table>
+        <tr>
+            <th>Поле</th>
+            <th>Значение в БД</th>
+            <th>Статус</th>
+        </tr>
+        <tr>
+            <td>ID результата</td>
+            <td>{{ sample.result.id }}</td>
+            <td class="{% if sample.result %}success{% else %}error{% endif %}">
+                {% if sample.result %}✓ Найден{% else %}✗ Не найден{% endif %}
+            </td>
+        </tr>
+        {% if sample.result %}
+        <tr>
+            <td>Область применения</td>
+            <td>{{ sample.result.apply_area }}</td>
+            <td>{% if sample.result.apply_area is not None %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Индекс распада w1</td>
+            <td>{{ sample.result.decay_index_w1 }}</td>
+            <td>{% if sample.result.decay_index_w1 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Индекс распада w2</td>
+            <td>{{ sample.result.decay_index_w2 }}</td>
+            <td>{% if sample.result.decay_index_w2 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Индекс распада w3</td>
+            <td>{{ sample.result.decay_index_w3 }}</td>
+            <td>{% if sample.result.decay_index_w3 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Индекс распада (расчет)</td>
+            <td>{{ sample.result.decay_index_value }}</td>
+            <td class="{% if sample.result.decay_index_value %}success{% else %}warning{% endif %}">
+                {% if sample.result.decay_index_value %}✓ {{ sample.result.decay_index_value }}{% else %}⚠ Пусто{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>Содержание вяжущего w1</td>
+            <td>{{ sample.result.binder_content_w1 }}</td>
+            <td>{% if sample.result.binder_content_w1 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Содержание вяжущего w2</td>
+            <td>{{ sample.result.binder_content_w2 }}</td>
+            <td>{% if sample.result.binder_content_w2 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Содержание вяжущего w3</td>
+            <td>{{ sample.result.binder_content_w3 }}</td>
+            <td>{% if sample.result.binder_content_w3 %}✓{% else %}✗{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Содержание вяжущего (расчет)</td>
+            <td>{{ sample.result.binder_content_value }}</td>
+            <td class="{% if sample.result.binder_content_value %}success{% else %}warning{% endif %}">
+                {% if sample.result.binder_content_value %}✓ {{ sample.result.binder_content_value }}{% else %}⚠ Пусто{% endif %}
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+    <br>
+    {% endfor %}
+    
+    <hr>
+    <a href="/samples/">← Вернуться к списку образцов</a>
+</body>
+</html>

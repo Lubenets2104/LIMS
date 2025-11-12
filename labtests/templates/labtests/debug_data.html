@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отладка данных</title>
+</head>
+<body>
+    <h1>Отладка TestResult для образца {{ sample.pk }}</h1>
+    
+    <h2>Образец:</h2>
+    <ul>
+        <li>ID: {{ sample.pk }}</li>
+        <li>Номер: {{ sample.sample_number }}</li>
+        <li>Статус: {{ sample.status }}</li>
+    </ul>
+    
+    <h2>TestResult:</h2>
+    {% if test_result %}
+        <ul>
+            <li>ID: {{ test_result.id }}</li>
+            <li>grain_initial_weight: "{{ test_result.grain_initial_weight }}"</li>
+            <li>grain_8_weight: "{{ test_result.grain_8_weight }}"</li>
+            <li>grain_4_weight: "{{ test_result.grain_4_weight }}"</li>
+            <li>grain_8_percent: "{{ test_result.grain_8_percent }}"</li>
+            <li>grain_4_percent: "{{ test_result.grain_4_percent }}"</li>
+            <li>dust_initial_weight: "{{ test_result.dust_initial_weight }}"</li>
+            <li>dust_after_weight: "{{ test_result.dust_after_weight }}"</li>
+            <li>dust_percent: "{{ test_result.dust_percent }}"</li>
+        </ul>
+    {% else %}
+        <p style="color: red;">TestResult НЕ НАЙДЕН!</p>
+    {% endif %}
+    
+    <h2>Проверка фильтров:</h2>
+    <ul>
+        <li>default: "{{ test_result.grain_initial_weight|default:'пусто' }}"</li>
+        <li>default_if_none: "{{ test_result.grain_initial_weight|default_if_none:'пусто' }}"</li>
+        <li>Без фильтра: "{{ test_result.grain_initial_weight }}"</li>
+    </ul>
+    
+    <hr>
+    <a href="{% url 'sample_test_form' sample.pk %}">Вернуться к форме</a>
+</body>
+</html>

@@ -1,0 +1,391 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лист измерений (Щебень {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        input[type="number"], input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            height: 35px;
+        }
+        
+        input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .info-table {
+            margin-bottom: 30px;
+        }
+        
+        .info-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            width: 30%;
+            background-color: #f8f9fa;
+        }
+        
+        .info-table input {
+            text-align: left;
+            padding-left: 10px;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        
+        .section-footer {
+            text-align: right;
+            font-style: italic;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Убираем стрелки в числовых полях */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        .gost-requirements {
+            background-color: #f0f8ff;
+            font-size: 0.9em;
+        }
+        
+        .note-row td {
+            text-align: left;
+            font-style: italic;
+            color: #666;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Лист измерений (Щебень {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</h1>
+        
+        <!-- Информация об образце -->
+        <table class="info-table">
+            <tr>
+                <td>Номер:</td>
+                <td><input type="text" value="{{ sample.sample_number }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата отбора:</td>
+                <td><input type="text" value="{{ sample.sampling_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Заказчик:</td>
+                <td><input type="text" value="{{ sample.customer }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Дата поступления в лабораторию:</td>
+                <td><input type="text" value="{{ sample.received_date|date:'d.m.Y' }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование материала:</td>
+                <td><input type="text" value="Щебень" readonly></td>
+            </tr>
+            <tr>
+                <td>Поставщик материала:</td>
+                <td><input type="text" value="{{ sample.supplier }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование смеси:</td>
+                <td><input type="text" value="{{ sample.mix.name }}" readonly></td>
+            </tr>
+            <tr>
+                <td>Наименование объекта:</td>
+                <td><input type="text" value="{{ sample.object_name }}" readonly></td>
+            </tr>
+        </table>
+        
+        <form method="post" action="{% url 'sample_test_form' sample.pk %}" id="crushed-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            
+            <!-- ГРАНУЛОМЕТРИЧЕСКИЙ СОСТАВ -->
+            <h2>Гранулометрический состав</h2>
+            <table>
+                <tr>
+                    <td style="text-align: left; font-weight: bold;">Масса пробы, г</td>
+                    <td colspan="5">
+                        <input type="number" step="0.1" name="grain_compound_weight" id="grain_compound_weight" value="{{ test_result.grain_compound_weight|format_float }}">
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Размеры ячеек контрольных сит, мм</th>
+                        <th>2D</th>
+                        <th>1.4D</th>
+                        <th>D</th>
+                        <th>d</th>
+                        <th>d/2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса, г</td>
+                        <td><input type="number" step="0.1" name="sieve_2d_weight" id="sieve_2d_weight" value="{{ test_result.sieve_2d_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_1_4d_weight" id="sieve_1_4d_weight" value="{{ test_result.sieve_1_4d_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_d_weight" id="sieve_d_weight" value="{{ test_result.sieve_d_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_d_small_weight" id="sieve_d_small_weight" value="{{ test_result.sieve_d_small_weight|format_float }}"></td>
+                        <td><input type="number" step="0.1" name="sieve_d_2_weight" id="sieve_d_2_weight" value="{{ test_result.sieve_d_2_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Частный остаток, % по массе</td>
+                        <td><input type="number" step="0.1" name="sieve_2d_partial" id="sieve_2d_partial" value="{{ test_result.sieve_2d_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_1_4d_partial" id="sieve_1_4d_partial" value="{{ test_result.sieve_1_4d_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_partial" id="sieve_d_partial" value="{{ test_result.sieve_d_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_small_partial" id="sieve_d_small_partial" value="{{ test_result.sieve_d_small_partial|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_2_partial" id="sieve_d_2_partial" value="{{ test_result.sieve_d_2_partial|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Проходы через сито, % по массе</td>
+                        <td><input type="number" step="0.1" name="sieve_2d_full" id="sieve_2d_full" value="{{ test_result.sieve_2d_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_1_4d_full" id="sieve_1_4d_full" value="{{ test_result.sieve_1_4d_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_full" id="sieve_d_full" value="{{ test_result.sieve_d_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_small_full" id="sieve_d_small_full" value="{{ test_result.sieve_d_small_full|format_float }}" readonly></td>
+                        <td><input type="number" step="0.1" name="sieve_d_2_full" id="sieve_d_2_full" value="{{ test_result.sieve_d_2_full|format_float }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tr>
+                    <td style="text-align: left; font-weight: bold;">Марка по проходам через сито</td>
+                    <td>
+                        <input type="text" name="mark_type" id="mark_type" value="{{ test_result.mark_type }}" readonly>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Требования ГОСТ -->
+            <table class="gost-requirements">
+                <thead>
+                    <tr>
+                        <th colspan="7">Требования ГОСТ 32703-2014</th>
+                    </tr>
+                    <tr>
+                        <th>Марка</th>
+                        <th>2D</th>
+                        <th>1.4D</th>
+                        <th>D</th>
+                        <th>d</th>
+                        <th>d/2</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>90/10</td>
+                        <td>100</td>
+                        <td>100</td>
+                        <td>90-100</td>
+                        <td>0-10</td>
+                        <td>0-2</td>
+                    </tr>
+                    <tr>
+                        <td>90/15</td>
+                        <td>100</td>
+                        <td>98-100</td>
+                        <td>90-100</td>
+                        <td>0-15</td>
+                        <td>0-5</td>
+                    </tr>
+                    <tr>
+                        <td>90/20</td>
+                        <td>100</td>
+                        <td>98-100</td>
+                        <td>90-100</td>
+                        <td>0-20</td>
+                        <td>0-5</td>
+                    </tr>
+                    <tr>
+                        <td>85/15</td>
+                        <td>100</td>
+                        <td>98-100</td>
+                        <td>85-100</td>
+                        <td>0-15</td>
+                        <td>0-5</td>
+                    </tr>
+                    <tr>
+                        <td>85/20</td>
+                        <td>100</td>
+                        <td>98-100</td>
+                        <td>85-100</td>
+                        <td>0-20</td>
+                        <td>0-5</td>
+                    </tr>
+                    <tr>
+                        <td>85/35</td>
+                        <td>100</td>
+                        <td>98-100</td>
+                        <td>85-100</td>
+                        <td>0-35</td>
+                        <td>0-5</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ЛЕЩАДНОСТЬ -->
+            <h2>Содержание зерен пластинчатой (лещадной) и игловатой формы</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса пробы, г</td>
+                        <td><input type="number" step="0.1" name="flakiness_weight" id="flakiness_weight" value="{{ test_result.flakiness_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса лещадных зерен, г</td>
+                        <td><input type="number" step="0.1" name="flakiness_flaky_weight" id="flakiness_flaky_weight" value="{{ test_result.flakiness_flaky_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Лещадность, %</td>
+                        <td><input type="number" step="0.01" name="flakiness_value" id="flakiness_value" value="{{ test_result.flakiness_value|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Марка по лещадности</td>
+                        <td><input type="text" name="flakiness_mark" id="flakiness_mark" value="{{ test_result.flakiness_mark }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <!-- ДРОБИМОСТЬ -->
+            <h2>Дробимость</h2>
+            <table>
+                <tr>
+                    <td style="text-align: left; font-weight: bold;">Вид породы</td>
+                    <td>
+                        <select name="crushability_type" id="crushability_type">
+                            <option value="0" {% if test_result.crushability_type == 0 %}selected{% endif %}>Изверженные и метаморфические горные породы, щебня из гравия и валунов, гравия</option>
+                            <option value="1" {% if test_result.crushability_type == 1 %}selected{% endif %}>Осадочные горные породы</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Параметр</th>
+                        <th>Значение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса пробы, г</td>
+                        <td><input type="number" step="0.1" name="crushability_weight" id="crushability_weight" value="{{ test_result.crushability_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Масса зерен оставшихся на контрольном сите после дробления, гр</td>
+                        <td><input type="number" step="0.1" name="crushability_after_weight" id="crushability_after_weight" value="{{ test_result.crushability_after_weight|format_float }}"></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Дробимость, %</td>
+                        <td><input type="number" step="0.01" name="crushability_value" id="crushability_value" value="{{ test_result.crushability_value|format_float }}" readonly></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left; font-weight: bold;">Марка по дробимости</td>
+                        <td><input type="text" name="crushability_mark" id="crushability_mark" value="{{ test_result.crushability_mark }}" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-footer">Испытания провел(а): _____________</div>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn-save">Сохранить</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- JavaScript для расчетов -->
+    <script src="{% static 'js/crushed_32703_calculations.js' %}"></script>
+</body>
+</html>

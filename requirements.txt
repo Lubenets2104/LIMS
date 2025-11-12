@@ -1,0 +1,15 @@
+# Django requirements
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.4
+Pillow>=10.2.0
+
+# API documentation
+drf-yasg==1.21.7
+
+# Development
+python-decouple==3.8
+
+# Additional
+whitenoise==6.6.0

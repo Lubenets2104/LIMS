@@ -1,0 +1,8 @@
+# Импорт модели битума
+try:
+    from .bitumen_33133 import BitumenTestResult33133
+except ImportError:
+    pass
+
+# Экспорт всех моделей
+__all__ = ['BitumenTestResult33133']

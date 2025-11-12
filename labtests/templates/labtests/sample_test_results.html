@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты испытаний - {{ sample.material.name }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        .results-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .results-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn-print {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+        }
+        table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #333;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                background: white;
+            }
+            .results-section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="results-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Результаты испытаний образца {{ sample.sample_number }}</h1>
+                <div class="no-print">
+                    <button class="btn btn-print" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Печать
+                    </button>
+                    <a href="{% url 'sample_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Назад
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <h2>Информация об образце</h2>
+            <table class="table">
+                <tr>
+                    <td width="40%"><strong>Номер образца:</strong></td>
+                    <td>{{ sample.sample_number }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Материал:</strong></td>
+                    <td>{{ sample.material.name }}</td>
+                </tr>
+                <tr>
+                    <td><strong>ГОСТ:</strong></td>
+                    <td>{{ sample.gost.number }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Заказчик:</strong></td>
+                    <td>{{ sample.customer }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Поставщик:</strong></td>
+                    <td>{{ sample.supplier }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Объект:</strong></td>
+                    <td>{{ sample.object_name }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Дата отбора:</strong></td>
+                    <td>{{ sample.sampling_date|date:"d.m.Y" }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Дата завершения испытаний:</strong></td>
+                    <td>{{ sample.completion_date|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        {% if test_result %}
+        <div class="results-section">
+            <h2>Результаты испытаний</h2>
+            
+            <p><strong>Класс песка:</strong> <span class="result-value">{{ test_result.result_class }}</span></p>
+
+            <div class="section-title">Зерновой состав и модуль крупности</div>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+                {% if test_result.grain_8_percent %}
+                <tr>
+                    <td>Содержание частиц крупнее 8 мм</td>
+                    <td class="result-value">{{ test_result.grain_8_percent }}%</td>
+                </tr>
+                {% endif %}
+                {% if test_result.grain_4_percent %}
+                <tr>
+                    <td>Содержание частиц крупнее 4 мм</td>
+                    <td class="result-value">{{ test_result.grain_4_percent }}%</td>
+                </tr>
+                {% endif %}
+                {% if test_result.dust_percent %}
+                <tr>
+                    <td>Содержание пылевидных и глинистых частиц</td>
+                    <td class="result-value">{{ test_result.dust_percent }}%</td>
+                </tr>
+                {% endif %}
+                {% if test_result.size_module_value %}
+                <tr>
+                    <td>Модуль крупности</td>
+                    <td class="result-value">{{ test_result.size_module_value }} ({{ test_result.size_module_name }})</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            {% if test_result.clay_percent %}
+            <div class="section-title">Содержание глины в комках</div>
+            <table>
+                <tr>
+                    <td width="40%">Содержание глины в комках</td>
+                    <td class="result-value">{{ test_result.clay_percent }}%</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            {% if test_result.humidity_average %}
+            <div class="section-title">Влажность</div>
+            <table>
+                <tr>
+                    <td width="40%">Средняя влажность</td>
+                    <td class="result-value">{{ test_result.humidity_average }}%</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            {% if test_result.clay_swell_content %}
+            <div class="section-title">Содержание глинистых частиц методом набухания</div>
+            <table>
+                <tr>
+                    <td width="40%">Содержание глинистых частиц</td>
+                    <td class="result-value">{{ test_result.clay_swell_content }}%</td>
+                </tr>
+                <tr>
+                    <td>Заключение</td>
+                    <td class="result-value">{{ test_result.clay_swell_conclusion }}</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            {% if test_result.bulk_average_density %}
+            <div class="section-title">Насыпная плотность</div>
+            <table>
+                <tr>
+                    <td width="40%">Средняя насыпная плотность</td>
+                    <td class="result-value">{{ test_result.bulk_average_density }} г/см³</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            {% if test_result.actual_average_density %}
+            <div class="section-title">Истинная плотность</div>
+            <table>
+                <tr>
+                    <td width="40%">Средняя истинная плотность</td>
+                    <td class="result-value">{{ test_result.actual_average_density }} г/см³</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            {% if test_result.emptiness %}
+            <div class="section-title">Пустотность</div>
+            <table>
+                <tr>
+                    <td width="40%">Пустотность песка</td>
+                    <td class="result-value">{{ test_result.emptiness }}%</td>
+                </tr>
+            </table>
+            {% endif %}
+
+            <div class="section-title">Зерновой состав (полные остатки на ситах)</div>
+            <table>
+                <tr>
+                    <th>Сито, мм</th>
+                    <th>2</th>
+                    <th>1</th>
+                    <th>0.5</th>
+                    <th>0.25</th>
+                    <th>0.125</th>
+                </tr>
+                <tr>
+                    <td><strong>Полный остаток, %</strong></td>
+                    <td class="result-value">{{ test_result.sieve_2_full|default:"-" }}</td>
+                    <td class="result-value">{{ test_result.sieve_1_full|default:"-" }}</td>
+                    <td class="result-value">{{ test_result.sieve_05_full|default:"-" }}</td>
+                    <td class="result-value">{{ test_result.sieve_025_full|default:"-" }}</td>
+                    <td class="result-value">{{ test_result.sieve_0125_full|default:"-" }}</td>
+                </tr>
+            </table>
+        </div>
+        {% else %}
+        <div class="results-section">
+            <h2>Результаты испытаний</h2>
+            <p class="text-muted">Результаты испытаний не найдены. Возможно, они еще не были сохранены.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
