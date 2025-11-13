@@ -224,6 +224,37 @@ h3 {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* Горизонтальная прокрутка таблицы */
+.data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+    position: relative;
+}
+
+.data-table table {
+    min-width: 1200px; /* Минимальная ширина таблицы */
+}
+
+/* Градиент-индикатор прокрутки на мобильных */
+@media (max-width: 768px) {
+    .data-table::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(to left, var(--secondary-bg), transparent);
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    
+    /* Скрываем градиент когда докручено до конца */
+    .data-table.scrolled-end::after {
+        opacity: 0;
+    }
+}
+
 /* ====================================
    Table Styles - Чистый дизайн
    ==================================== */
@@ -795,6 +826,28 @@ strong {
     .btn-delete {
         width: 100%;
         justify-content: center;
+    }
+    
+    /* Улучшенная прокрутка таблицы на мобильных */
+    .data-table {
+        border-radius: 12px;
+        margin: 0 -1rem; /* Таблица на всю ширину экрана */
+        border-left: none;
+        border-right: none;
+    }
+    
+    .data-table table {
+        min-width: 1000px;
+    }
+    
+    .table thead th {
+        padding: 0.75rem;
+        font-size: 0.7rem;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem;
+        font-size: 0.85rem;
     }
 }
 

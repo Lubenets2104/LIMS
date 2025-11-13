@@ -281,6 +281,7 @@
     overflow: hidden;
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: relative; /* Для позиционирования градиента */
 }
 
 .data-table thead th {
@@ -474,13 +475,35 @@ input[type="number"] {
         flex-wrap: wrap;
     }
     
+    /* Горизонтальная прокрутка для таблиц на мобильных */
     .data-table {
         font-size: 0.875rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+    }
+    
+    .data-table table {
+        min-width: 600px; /* Минимальная ширина для прокрутки */
     }
     
     .data-table thead th,
     .data-table tbody td {
         padding: 0.5rem;
+        white-space: nowrap; /* Предотвращает перенос текста */
+    }
+    
+    /* Градиент-индикатор прокрутки */
+    .data-table::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(to left, var(--secondary-bg), transparent);
+        pointer-events: none;
+        opacity: 0.8;
     }
     
     .info-table td:first-child {

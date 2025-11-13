@@ -149,6 +149,22 @@
     document.getElementById('searchIcon').addEventListener('mousedown', function(e) {
         e.preventDefault();
     });
+    
+    // Индикатор прокрутки таблицы
+    const dataTable = document.querySelector('.data-table');
+    if (dataTable && window.innerWidth <= 768) {
+        dataTable.addEventListener('scroll', function() {
+            const isScrolledEnd = Math.abs(
+                dataTable.scrollWidth - dataTable.clientWidth - dataTable.scrollLeft
+            ) < 5;
+            
+            if (isScrolledEnd) {
+                dataTable.classList.add('scrolled-end');
+            } else {
+                dataTable.classList.remove('scrolled-end');
+            }
+        });
+    }
 
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', function(e) {
