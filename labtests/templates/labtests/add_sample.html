@@ -1,525 +1,376 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить образец - Лабораторные испытания</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    
-    <!-- Choices.js for multiselect -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .form-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 30px;
-        }
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-        }
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            padding: 12px 15px;
-            transition: all 0.3s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        }
-        .choices__inner {
-            min-height: 45px;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            padding: 8px 12px;
-        }
-        .choices[data-type*=select-multiple] .choices__inner {
-            padding: 5px 10px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 12px 30px;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        .btn-secondary {
-            background: #6c757d;
-            border: none;
-            padding: 12px 30px;
-            font-weight: 600;
-            border-radius: 8px;
-        }
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        .required-field::after {
-            content: " *";
-            color: #dc3545;
-        }
-        .back-link {
-            color: #667eea;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .back-link:hover {
-            color: #764ba2;
-            transform: translateX(-5px);
-        }
-        .select-all-link {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        .select-all-link:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-container">
-        <!-- Заголовок страницы -->
-        <div class="page-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h2 mb-2">Новый образец</h1>
-                    <p class="mb-0 opacity-75">Заполните форму для регистрации нового образца</p>
-                </div>
-                <a href="{% url 'sample_list' %}" class="back-link text-white">
-                    <i class="bi bi-arrow-left"></i> Вернуться к списку
-                </a>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Добавить образец{% endblock %}
+
+{% block extra_head %}
+<!-- Choices.js for multiselect -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок страницы -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1>Новый образец</h1>
+                <p>Заполните форму для регистрации нового образца</p>
+            </div>
+            <a href="{% url 'sample_list' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Вернуться к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Форма -->
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        
+        <!-- Основная информация -->
+        <h3 class="section-title">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Основная информация</span>
+        </h3>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label for="id_sample_number" class="form-label required-field">Номер образца</label>
+                <input type="text" class="form-control" id="id_sample_number" name="sample_number" required 
+                       value="{{ form.data.sample_number|default:'' }}"
+                       placeholder="Введите номер образца">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_sampling_date" class="form-label required-field">Дата отбора</label>
+                <input type="date" class="form-control" id="id_sampling_date" name="sampling_date" required
+                       value="{{ form.data.sampling_date|default:'' }}">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_received_date" class="form-label required-field">Дата поступления</label>
+                <input type="date" class="form-control" id="id_received_date" name="received_date" required
+                       value="{{ form.data.received_date|default:'' }}">
             </div>
         </div>
 
-        <!-- Форма -->
-        <form method="post" class="form-card">
-            {% csrf_token %}
-            
-            <!-- Основная информация -->
-            <h3 class="section-title">
-                <i class="bi bi-info-circle"></i> Основная информация
-            </h3>
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3">
-                    <label for="id_sample_number" class="form-label required-field">Номер образца</label>
-                    <input type="text" class="form-control" id="id_sample_number" name="sample_number" required 
-                           value="{{ form.data.sample_number|default:'' }}"
-                           placeholder="Введите номер образца">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="id_sampling_date" class="form-label required-field">Дата отбора</label>
-                    <input type="date" class="form-control" id="id_sampling_date" name="sampling_date" required
-                           value="{{ form.data.sampling_date|default:'' }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="id_received_date" class="form-label required-field">Дата поступления</label>
-                    <input type="date" class="form-control" id="id_received_date" name="received_date" required
-                           value="{{ form.data.received_date|default:'' }}">
-                </div>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label for="id_completion_date" class="form-label">Дата окончания испытаний</label>
+                <input type="date" class="form-control" id="id_completion_date" name="completion_date"
+                       value="{{ form.data.completion_date|default:'' }}">
             </div>
+        </div>
 
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3">
-                    <label for="id_completion_date" class="form-label">Дата окончания испытаний</label>
-                    <input type="date" class="form-control" id="id_completion_date" name="completion_date"
-                           value="{{ form.data.completion_date|default:'' }}">
-                </div>
+        <!-- Материал и стандарты -->
+        <h3 class="section-title">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Материал и стандарты</span>
+        </h3>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label for="id_material" class="form-label required-field">Материал</label>
+                <select class="form-select" id="id_material" name="material" required>
+                    <option value="">Выберите материал</option>
+                    {% for material in form.fields.material.queryset %}
+                        <option value="{{ material.id }}" {% if form.data.material == material.id|stringformat:"s" %}selected{% endif %}>{{ material.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
-
-            <!-- Материал и стандарты -->
-            <h3 class="section-title">
-                <i class="bi bi-box"></i> Материал и стандарты
-            </h3>
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3">
-                    <label for="id_material" class="form-label required-field">Материал</label>
-                    <select class="form-select" id="id_material" name="material" required>
-                        <option value="">Выберите материал</option>
-                        {% for material in form.fields.material.queryset %}
-                            <option value="{{ material.id }}" {% if form.data.material == material.id|stringformat:"s" %}selected{% endif %}>{{ material.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="id_gost" class="form-label required-field">ГОСТ</label>
-                    <select class="form-select" id="id_gost" name="gost" disabled required>
-                        <option value="">Сначала выберите материал</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="id_mix" class="form-label">Наименование смеси</label>
-                    <select class="form-select {% if form.mix.errors %}is-invalid{% endif %}" id="id_mix" name="mix" disabled>
-                        <option value="">Сначала выберите ГОСТ</option>
-                    </select>
-                    {% if form.mix.errors %}
-                        <div class="invalid-feedback">
-                            {{ form.mix.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_gost" class="form-label required-field">ГОСТ</label>
+                <select class="form-select" id="id_gost" name="gost" disabled required>
+                    <option value="">Сначала выберите материал</option>
+                </select>
             </div>
-
-            <div class="row mb-4">
-                <div class="col-12">
-                    <label for="id_indicators" class="form-label">
-                        Определяемые показатели
-                        <a href="#" class="select-all-link ms-2" onclick="selectAllIndicators(); return false;">
-                            <i class="bi bi-check-square"></i> Выбрать все
-                        </a>
-                    </label>
-                    <select name="indicators" id="id_indicators" multiple class="form-control"></select>
-                </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_mix" class="form-label">Наименование смеси</label>
+                <select class="form-select {% if form.mix.errors %}is-invalid{% endif %}" id="id_mix" name="mix" disabled>
+                    <option value="">Сначала выберите ГОСТ</option>
+                </select>
+                {% if form.mix.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.mix.errors.0 }}
+                    </div>
+                {% endif %}
             </div>
+        </div>
 
-            <!-- Информация о заказчике -->
-            <h3 class="section-title">
-                <i class="bi bi-people"></i> Информация о заказчике и объекте
-            </h3>
-            <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <label for="id_customer" class="form-label required-field">Заказчик</label>
-                    <input type="text" class="form-control" id="id_customer" name="customer" required 
-                           value="{{ form.data.customer|default:'' }}"
-                           placeholder="Наименование организации">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="id_supplier" class="form-label required-field">Поставщик</label>
-                    <input type="text" class="form-control" id="id_supplier" name="supplier" required 
-                           value="{{ form.data.supplier|default:'' }}"
-                           placeholder="Наименование поставщика">
-                </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <label for="id_indicators" class="form-label">
+                    Определяемые показатели
+                    <a href="#" class="select-all-link ms-2" onclick="selectAllIndicators(); return false;">
+                        <i class="bi bi-check-square"></i> Выбрать все
+                    </a>
+                </label>
+                <select name="indicators" id="id_indicators" multiple class="form-control"></select>
             </div>
-            <div class="row mb-4">
-                <div class="col-12">
-                    <label for="id_object_name" class="form-label required-field">Наименование объекта</label>
-                    <input type="text" class="form-control" id="id_object_name" name="object_name" required 
-                           value="{{ form.data.object_name|default:'' }}"
-                           placeholder="Укажите объект, для которого предназначен материал">
-                </div>
+        </div>
+
+        <!-- Информация о заказчике -->
+        <h3 class="section-title">
+            <i class="bi bi-people-fill"></i>
+            <span>Информация о заказчике и объекте</span>
+        </h3>
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label for="id_customer" class="form-label required-field">Заказчик</label>
+                <input type="text" class="form-control" id="id_customer" name="customer" required 
+                       value="{{ form.data.customer|default:'' }}"
+                       placeholder="Наименование организации">
             </div>
-
-            <!-- Кнопки -->
-            <div class="d-flex gap-3 mt-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle"></i> Сохранить
-                </button>
-                <a href="{% url 'sample_list' %}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Отмена
-                </a>
+            <div class="col-md-6 mb-3">
+                <label for="id_supplier" class="form-label required-field">Поставщик</label>
+                <input type="text" class="form-control" id="id_supplier" name="supplier" required 
+                       value="{{ form.data.supplier|default:'' }}"
+                       placeholder="Наименование поставщика">
             </div>
-        </form>
-    </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <label for="id_object_name" class="form-label required-field">Наименование объекта</label>
+                <input type="text" class="form-control" id="id_object_name" name="object_name" required 
+                       value="{{ form.data.object_name|default:'' }}"
+                       placeholder="Укажите объект, для которого предназначен материал">
+            </div>
+        </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-    
-    <script>
-        let indicatorChoices;
+        <!-- Кнопки -->
+        <div class="d-flex gap-3 mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Сохранить
+            </button>
+            <a href="{% url 'sample_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
 
-        function initializeChoices() {
-            const indicatorsField = document.getElementById("id_indicators");
-            if (indicatorChoices) {
-                indicatorChoices.destroy();
-            }
-            indicatorChoices = new Choices(indicatorsField, {
-                removeItemButton: true,
-                placeholder: true,
-                placeholderValue: 'Выберите показатели для испытаний',
-                noResultsText: 'Показатели не найдены',
-                noChoicesText: 'Сначала выберите ГОСТ',
-                itemSelectText: '',
-                shouldSort: false,
-                searchPlaceholderValue: 'Поиск показателей...',
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+<script>
+    let indicatorChoices;
+
+    function initializeChoices() {
+        const indicatorsField = document.getElementById("id_indicators");
+        if (indicatorChoices) {
+            indicatorChoices.destroy();
+        }
+        indicatorChoices = new Choices(indicatorsField, {
+            removeItemButton: true,
+            placeholder: true,
+            placeholderValue: 'Выберите показатели для испытаний',
+            noResultsText: 'Показатели не найдены',
+            noChoicesText: 'Сначала выберите ГОСТ',
+            itemSelectText: '',
+            shouldSort: false,
+            searchPlaceholderValue: 'Поиск показателей...',
+        });
+    }
+
+    function selectAllIndicators() {
+        if (indicatorChoices) {
+            const allOptions = indicatorChoices._store.choices;
+            allOptions.forEach(option => {
+                if (!option.selected) {
+                    indicatorChoices.setChoiceByValue(option.value);
+                }
             });
         }
+    }
 
-        function selectAllIndicators() {
-            if (indicatorChoices) {
-                const allOptions = indicatorChoices._store.choices;
-                allOptions.forEach(option => {
-                    if (!option.selected) {
-                        indicatorChoices.setChoiceByValue(option.value);
+    document.addEventListener('DOMContentLoaded', function () {
+        const materialField = document.getElementById('id_material');
+        const gostField = document.getElementById('id_gost');
+        const mixField = document.getElementById('id_mix');
+
+        initializeChoices();
+        
+        {% if form.preserve_data %}
+            {% if form.data.material %}
+                fetch(`/ajax/load-gosts/?material_id={{ form.data.material }}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        gostField.innerHTML = '<option value="">Выберите ГОСТ</option>';
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.number;
+                            {% if form.data.gost %}
+                            if (item.id == {{ form.data.gost }}) {
+                                option.selected = true;
+                            }
+                            {% endif %}
+                            gostField.appendChild(option);
+                        });
+                        gostField.disabled = false;
+                            
+                        {% if form.data.gost %}
+                        fetch(`/ajax/load-mixes/?gost_id={{ form.data.gost }}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                mixField.innerHTML = '<option value="">Выберите смесь (опционально)</option>';
+                                data.forEach(item => {
+                                    const option = document.createElement('option');
+                                    option.value = item.id;
+                                    option.textContent = item.name;
+                                    {% if form.data.mix %}
+                                    if (item.id == {{ form.data.mix }}) {
+                                        option.selected = true;
+                                    }
+                                    {% endif %}
+                                    mixField.appendChild(option);
+                                });
+                                mixField.disabled = false;
+                                setTimeout(updateMixRequirement, 100);
+                            });
+                        
+                        fetch(`/ajax/load-indicators/?gost_id={{ form.data.gost }}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const selectedIndicators = [];
+                                {% if form.selected_indicators %}
+                                    {% for indicator_id in form.selected_indicators %}
+                                        selectedIndicators.push('{{ indicator_id }}');
+                                    {% endfor %}
+                                {% endif %}
+                                const choicesData = data.map(item => ({
+                                    value: item.id.toString(),
+                                    label: item.name,
+                                    selected: selectedIndicators.includes(item.id.toString()),
+                                    disabled: false
+                                }));
+                                indicatorChoices.setChoices(choicesData, 'value', 'label', true);
+                            });
+                        {% endif %}
+                    });
+            {% endif %}
+        {% endif %}
+
+        materialField.addEventListener('change', function () {
+            const materialId = this.value;
+            gostField.disabled = true;
+            gostField.innerHTML = '<option value="">Загрузка...</option>';
+            mixField.disabled = true;
+            mixField.innerHTML = '<option value="">Сначала выберите ГОСТ</option>';
+            indicatorChoices.clearChoices();
+            indicatorChoices.clearStore();
+
+            if (materialId) {
+                fetch(`/ajax/load-gosts/?material_id=${materialId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        gostField.innerHTML = '<option value="">Выберите ГОСТ</option>';
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.number;
+                            gostField.appendChild(option);
+                        });
+                        gostField.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Ошибка загрузки ГОСТов:', error);
+                        gostField.innerHTML = '<option value="">Ошибка загрузки</option>';
+                    });
+            } else {
+                gostField.innerHTML = '<option value="">Сначала выберите материал</option>';
+            }
+        });
+
+        gostField.addEventListener('change', function () {
+            const gostId = this.value;
+            mixField.disabled = true;
+            mixField.innerHTML = '<option value="">Загрузка...</option>';
+            indicatorChoices.clearChoices();
+            indicatorChoices.clearStore();
+
+            if (gostId) {
+                fetch(`/ajax/load-mixes/?gost_id=${gostId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        mixField.innerHTML = '<option value="">Выберите смесь (опционально)</option>';
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.name;
+                            mixField.appendChild(option);
+                        });
+                        mixField.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Ошибка загрузки смесей:', error);
+                        mixField.innerHTML = '<option value="">Нет доступных смесей</option>';
+                    });
+
+                fetch(`/ajax/load-indicators/?gost_id=${gostId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const choicesData = data.map(item => ({
+                            value: item.id.toString(),
+                            label: item.name,
+                            selected: false,
+                            disabled: false
+                        }));
+                        indicatorChoices.setChoices(choicesData, 'value', 'label', true);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка загрузки показателей:', error);
+                    });
+            } else {
+                mixField.innerHTML = '<option value="">Сначала выберите ГОСТ</option>';
+            }
+        });
+    });
+
+    function updateMixRequirement() {
+        const mixField = document.getElementById('id_mix');
+        const mixLabel = document.querySelector('label[for="id_mix"]');
+        
+        if (mixField && mixField.options.length > 1) {
+            const hasRealOptions = Array.from(mixField.options).some(opt => opt.value && opt.value !== '');
+            
+            if (hasRealOptions) {
+                mixField.required = true;
+                if (mixLabel && !mixLabel.classList.contains('required-field')) {
+                    mixLabel.classList.add('required-field');
+                }
+                if (mixField.options[0] && !mixField.options[0].value) {
+                    mixField.options[0].text = 'Выберите смесь';
+                }
+                mixField.addEventListener('change', function() {
+                    if (!this.value) {
+                        this.classList.add('is-invalid');
+                        let feedback = this.nextElementSibling;
+                        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                            feedback = document.createElement('div');
+                            feedback.className = 'invalid-feedback';
+                            feedback.textContent = 'Для выбранного ГОСТа необходимо выбрать смесь.';
+                            this.parentNode.appendChild(feedback);
+                        }
+                    } else {
+                        this.classList.remove('is-invalid');
+                        const feedback = this.nextElementSibling;
+                        if (feedback && feedback.classList.contains('invalid-feedback')) {
+                            feedback.remove();
+                        }
                     }
                 });
+            } else {
+                mixField.required = false;
+                if (mixLabel) {
+                    mixLabel.classList.remove('required-field');
+                }
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const materialField = document.getElementById('id_material');
-            const gostField = document.getElementById('id_gost');
-            const mixField = document.getElementById('id_mix');
-
-            initializeChoices();
-            
-            // Восстанавливаем значения после неудачной валидации
-            {% if form.preserve_data %}
-                console.log('Восстанавливаем данные формы после валидации');
-                
-                // Материал уже установлен через selected в HTML
-                
-                {% if form.data.material %}
-                    console.log('Материал был выбран: {{ form.data.material }}');
-                
-                    // Загружаем ГОСТы для выбранного материала
-                    fetch(`/ajax/load-gosts/?material_id={{ form.data.material }}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Загружены ГОСТы:', data);
-                            gostField.innerHTML = '<option value="">Выберите ГОСТ</option>';
-                            data.forEach(item => {
-                                const option = document.createElement('option');
-                                option.value = item.id;
-                                option.textContent = item.number;
-                                {% if form.data.gost %}
-                                if (item.id == {{ form.data.gost }}) {
-                                    option.selected = true;
-                                    console.log('Выбран ГОСТ:', item.id);
-                                }
-                                {% endif %}
-                                gostField.appendChild(option);
-                            });
-                            gostField.disabled = false;
-                                
-                            {% if form.data.gost %}
-                            // После загрузки ГОСТов загружаем смеси и показатели
-                            // Загружаем смеси
-                            fetch(`/ajax/load-mixes/?gost_id={{ form.data.gost }}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log('Загружены смеси:', data);
-                                    mixField.innerHTML = '<option value="">Выберите смесь (опционально)</option>';
-                                    data.forEach(item => {
-                                        const option = document.createElement('option');
-                                        option.value = item.id;
-                                        option.textContent = item.name;
-                                        {% if form.data.mix %}
-                                        if (item.id == {{ form.data.mix }}) {
-                                            option.selected = true;
-                                            console.log('Выбрана смесь:', item.id);
-                                        }
-                                        {% endif %}
-                                        mixField.appendChild(option);
-                                    });
-                                    mixField.disabled = false;
-                                    
-                                    // Обновляем требования к полю смеси
-                                    setTimeout(updateMixRequirement, 100);
-                                });
-                            
-                            // Загружаем показатели
-                            fetch(`/ajax/load-indicators/?gost_id={{ form.data.gost }}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log('Загружены показатели:', data);
-                                    
-                                    // Получаем выбранные показатели из POST данных
-                                    const selectedIndicators = [];
-                                    {% if form.selected_indicators %}
-                                        {% for indicator_id in form.selected_indicators %}
-                                            selectedIndicators.push('{{ indicator_id }}');
-                                        {% endfor %}
-                                    {% endif %}
-                                    
-                                    console.log('Выбранные показатели:', selectedIndicators);
-                                    
-                                    const choicesData = data.map(item => ({
-                                        value: item.id.toString(),
-                                        label: item.name,
-                                        selected: selectedIndicators.includes(item.id.toString()),
-                                        disabled: false
-                                    }));
-                                    indicatorChoices.setChoices(choicesData, 'value', 'label', true);
-                                });
-                            {% endif %}
-                        });
-                {% endif %}
-            {% endif %}
-
-            // Обработчик изменения материала
-            materialField.addEventListener('change', function () {
-                const materialId = this.value;
-                gostField.disabled = true;
-                gostField.innerHTML = '<option value="">Загрузка...</option>';
-                mixField.disabled = true;
-                mixField.innerHTML = '<option value="">Сначала выберите ГОСТ</option>';
-                indicatorChoices.clearChoices();
-                indicatorChoices.clearStore();
-
-                if (materialId) {
-                    fetch(`/ajax/load-gosts/?material_id=${materialId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            gostField.innerHTML = '<option value="">Выберите ГОСТ</option>';
-                            data.forEach(item => {
-                                const option = document.createElement('option');
-                                option.value = item.id;
-                                option.textContent = item.number;
-                                gostField.appendChild(option);
-                            });
-                            gostField.disabled = false;
-                        })
-                        .catch(error => {
-                            console.error('Ошибка загрузки ГОСТов:', error);
-                            gostField.innerHTML = '<option value="">Ошибка загрузки</option>';
-                        });
-                } else {
-                    gostField.innerHTML = '<option value="">Сначала выберите материал</option>';
-                }
-            });
-
-            // Обработчик изменения ГОСТа
-            gostField.addEventListener('change', function () {
-                const gostId = this.value;
-                mixField.disabled = true;
-                mixField.innerHTML = '<option value="">Загрузка...</option>';
-                indicatorChoices.clearChoices();
-                indicatorChoices.clearStore();
-
-                if (gostId) {
-                    // Загрузка смесей
-                    fetch(`/ajax/load-mixes/?gost_id=${gostId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            mixField.innerHTML = '<option value="">Выберите смесь (опционально)</option>';
-                            data.forEach(item => {
-                                const option = document.createElement('option');
-                                option.value = item.id;
-                                option.textContent = item.name;
-                                mixField.appendChild(option);
-                            });
-                            mixField.disabled = false;
-                        })
-                        .catch(error => {
-                            console.error('Ошибка загрузки смесей:', error);
-                            mixField.innerHTML = '<option value="">Нет доступных смесей</option>';
-                        });
-
-                    // Загрузка показателей
-                    fetch(`/ajax/load-indicators/?gost_id=${gostId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const choicesData = data.map(item => ({
-                                value: item.id.toString(),
-                                label: item.name,
-                                selected: false,
-                                disabled: false
-                            }));
-                            indicatorChoices.setChoices(choicesData, 'value', 'label', true);
-                        })
-                        .catch(error => {
-                            console.error('Ошибка загрузки показателей:', error);
-                        });
-                } else {
-                    mixField.innerHTML = '<option value="">Сначала выберите ГОСТ</option>';
-                }
-            });
-        });
-    </script>
+    }
     
-    <!-- Скрипт для управления обязательностью поля смеси -->
-    <script>
-        function updateMixRequirement() {
-            const mixField = document.getElementById('id_mix');
-            const mixLabel = document.querySelector('label[for="id_mix"]');
-            
-            if (mixField && mixField.options.length > 1) {
-                // Есть доступные смеси (больше чем просто пустая опция)
-                const hasRealOptions = Array.from(mixField.options).some(opt => opt.value && opt.value !== '');
-                
-                if (hasRealOptions) {
-                    // Делаем поле обязательным
-                    mixField.required = true;
-                    
-                    // Добавляем звездочку к лейблу
-                    if (mixLabel && !mixLabel.classList.contains('required-field')) {
-                        mixLabel.classList.add('required-field');
-                    }
-                    
-                    // Обновляем текст placeholder
-                    if (mixField.options[0] && !mixField.options[0].value) {
-                        mixField.options[0].text = 'Выберите смесь';
-                    }
-                    
-                    // Добавляем визуальное предупреждение если не выбрано
-                    mixField.addEventListener('change', function() {
-                        if (!this.value) {
-                            this.classList.add('is-invalid');
-                            // Создаем сообщение об ошибке, если его нет
-                            let feedback = this.nextElementSibling;
-                            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                                feedback = document.createElement('div');
-                                feedback.className = 'invalid-feedback';
-                                feedback.textContent = 'Для выбранного ГОСТа необходимо выбрать смесь.';
-                                this.parentNode.appendChild(feedback);
-                            }
-                        } else {
-                            this.classList.remove('is-invalid');
-                            // Удаляем сообщение об ошибке
-                            const feedback = this.nextElementSibling;
-                            if (feedback && feedback.classList.contains('invalid-feedback')) {
-                                feedback.remove();
-                            }
-                        }
-                    });
-                } else {
-                    // Нет смесей - поле необязательное
-                    mixField.required = false;
-                    if (mixLabel) {
-                        mixLabel.classList.remove('required-field');
-                    }
-                }
-            }
-        }
-        
-        // Модифицируем существующий обработчик для ГОСТа
-        const originalGostHandler = gostField.onchange;
-        gostField.addEventListener('change', function() {
-            // Вызываем обновление требования после загрузки смесей
-            setTimeout(updateMixRequirement, 500);
-        });
-        
-        // Также следим за изменениями в поле смесей
-        const mixObserver = new MutationObserver(updateMixRequirement);
-        mixObserver.observe(document.getElementById('id_mix'), { childList: true });
-    </script>
-</body>
-</html>
+    gostField.addEventListener('change', function() {
+        setTimeout(updateMixRequirement, 500);
+    });
+    
+    const mixObserver = new MutationObserver(updateMixRequirement);
+    mixObserver.observe(document.getElementById('id_mix'), { childList: true });
+</script>
+{% endblock %}

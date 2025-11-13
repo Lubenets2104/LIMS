@@ -2,139 +2,27 @@
 
 {% block title %}Список образцов{% endblock %}
 
-{% block extra_head %}
-<style>
-    .data-table {
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 0 20px rgba(0,0,0,0.08);
-        width: 100%;
-        overflow-x: auto;
-        margin-bottom: 20px;
-    }
-    .table {
-        margin: 0;
-        font-size: 14px;
-        min-width: 1300px;
-        width: 100%;
-    }
-    .table thead th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #dee2e6;
-        font-weight: 600;
-        color: #495057;
-        padding: 10px 12px;
-        white-space: nowrap;
-        font-size: 13px;
-        text-align: left;
-    }
-    .table tbody td {
-        padding: 10px 12px;
-        vertical-align: middle;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    .status-cell {
-        text-align: left;
-        vertical-align: middle;
-        min-width: 100px;
-    }
-    .badge {
-        font-size: 11px;
-        padding: 5px 10px;
-        min-width: 75px;
-        display: inline-block;
-        text-align: center;
-        font-weight: 500;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 5px;
-        justify-content: flex-start;
-        align-items: center;
-        min-width: 100px;
-    }
-    .action-buttons .btn {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-    .btn-delete {
-        background-color: #dc3545;
-        color: white;
-        border: 1px solid #dc3545;
-        transition: all 0.3s;
-        font-weight: 500;
-        padding: 4px 10px;
-        min-width: 80px;
-        white-space: nowrap;
-        font-size: 12px;
-    }
-    .btn-delete:hover {
-        background-color: #c82333;
-        border-color: #bd2130;
-        color: white;
-        transform: scale(1.05);
-        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
-    }
-    .btn-delete i {
-        font-size: 14px;
-        margin-right: 3px;
-    }
-    .btn-result {
-        font-size: 13px;
-        padding: 4px 12px;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.3s;
-    }
-    .btn-fill {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeaa7;
-    }
-    .btn-fill:hover {
-        background-color: #ffe8a1;
-        color: #856404;
-    }
-    .btn-open {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    .btn-open:hover {
-        background-color: #c1e2ca;
-        color: #155724;
-    }
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #6c757d;
-    }
-    .empty-state i {
-        font-size: 48px;
-        color: #dee2e6;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container-fluid">
+    <!-- Заголовок -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Образцы для испытаний</h1>
         <div>
-            <a href="{% url 'add_sample' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Добавить образец
-            </a>
+            <h1>Образцы для испытаний</h1>
+            <p class="text-muted mb-0">Управление образцами и результатами испытаний</p>
         </div>
+        <a href="{% url 'add_sample' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Добавить образец
+        </a>
     </div>
 
     <!-- Search Bar -->
-    <div class="mb-3">
-        <input type="text" class="form-control" placeholder="Поиск по образцам..." id="searchInput">
+    <div class="mb-4">
+        <div class="input-group">
+            <span class="input-group-text" id="searchIcon">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Поиск по образцам..." id="searchInput">
+        </div>
     </div>
 
     <!-- Data Table -->
@@ -160,33 +48,39 @@
                 <tbody>
                     {% for sample in samples %}
                     <tr>
-                        <td>{{ sample.sample_number }}</td>
+                        <td><strong>{{ sample.sample_number }}</strong></td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn btn-sm btn-delete" title="Удалить образец" 
                                         onclick="confirmDelete({{ sample.id }}, '{{ sample.sample_number }}')">
-                                    <i class="bi bi-trash-fill"></i> Удалить
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         </td>
-                        <td class="status-cell">
+                        <td>
                             {% if sample.status == 'draft' %}
-                                <span class="badge bg-secondary">Черновик</span>
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-pencil"></i> Черновик
+                                </span>
                             {% elif sample.status == 'in_progress' %}
-                                <span class="badge bg-warning">В работе</span>
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-clock"></i> В работе
+                                </span>
                             {% elif sample.status == 'completed' %}
-                                <span class="badge bg-success">Завершен</span>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Завершен
+                                </span>
                             {% endif %}
                         </td>
                         <td>{{ sample.sampling_date|date:"d.m.Y" }}</td>
                         <td>{{ sample.received_date|date:"d.m.Y" }}</td>
-                        <td>{{ sample.completion_date|date:"d.m.Y"|default:"-" }}</td>
+                        <td>{{ sample.completion_date|date:"d.m.Y"|default:"—" }}</td>
                         <td>{{ sample.customer }}</td>
                         <td>{{ sample.supplier }}</td>
                         <td>{{ sample.object_name }}</td>
                         <td>{{ sample.material.name }}</td>
                         <td>
-                            {{ sample.gost.number }}
+                            <strong>{{ sample.gost.number }}</strong>
                             {% if sample.mix %}
                                 <br><small class="text-muted">{{ sample.mix.name }}</small>
                             {% endif %}
@@ -194,14 +88,14 @@
                         <td>
                             {% if sample.status == 'in_progress' %}
                                 <a href="{% url 'sample_test_form' sample.id %}" class="btn-result btn-fill">
-                                    Заполнить
+                                    <i class="bi bi-pencil-square"></i> Заполнить
                                 </a>
                             {% elif sample.status == 'completed' %}
                                 <a href="{% url 'sample_test_results' sample.id %}" class="btn-result btn-open">
-                                    Открыть
+                                    <i class="bi bi-eye"></i> Открыть
                                 </a>
                             {% else %}
-                                -
+                                <span class="text-muted">—</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -227,18 +121,19 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-warning"></i> Подтверждение удаления
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                    Подтверждение удаления
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>Вы действительно хотите удалить образец <strong id="sampleNumberToDelete"></strong>?</p>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-info-circle"></i> Это действие нельзя отменить.
-                </p>
+                <p class="text-muted mb-0">Это действие нельзя отменить.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Отмена
+                </button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
                     <i class="bi bi-trash"></i> Удалить
                 </button>
@@ -250,6 +145,11 @@
 
 {% block extra_scripts %}
 <script>
+    // Prevent search icon from focusing input
+    document.getElementById('searchIcon').addEventListener('mousedown', function(e) {
+        e.preventDefault();
+    });
+
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();

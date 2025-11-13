@@ -3,7 +3,7 @@
 {% block title %}Профиль пользователя{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container">
     <h1>Профиль пользователя</h1>
     
     <div class="card mt-3">
@@ -58,7 +58,7 @@
                     </div>
                 </div>
                 
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between gap-3">
                     <button type="submit" class="btn btn-primary">Сохранить изменения</button>
                     <a href="{% url 'password_change' %}" class="btn btn-secondary">Изменить пароль</a>
                 </div>
@@ -75,19 +75,19 @@
                 <div class="col-md-4">
                     <div class="text-center">
                         <h3>{{ total_samples }}</h3>
-                        <p>Всего образцов</p>
+                        <p class="text-muted">Всего образцов</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="text-center">
                         <h3>{{ in_progress_samples }}</h3>
-                        <p>В работе</p>
+                        <p class="text-muted">В работе</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="text-center">
                         <h3>{{ completed_samples }}</h3>
-                        <p>Завершено</p>
+                        <p class="text-muted">Завершено</p>
                     </div>
                 </div>
             </div>
@@ -133,7 +133,7 @@
                                         Редактировать
                                     </a>
                                 {% elif sample.status == 'completed' %}
-                                    <a href="{% url 'sample_test_results' sample.pk %}" class="btn btn-sm btn-info">
+                                    <a href="{% url 'sample_test_results' sample.pk %}" class="btn btn-sm" style="background: var(--accent-color); color: white;">
                                         Результаты
                                     </a>
                                 {% endif %}
@@ -141,7 +141,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center">Нет образцов</td>
+                            <td colspan="6" class="text-center text-muted">Нет образцов</td>
                         </tr>
                         {% endfor %}
                     </tbody>
