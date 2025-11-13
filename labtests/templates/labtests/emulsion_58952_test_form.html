@@ -7,197 +7,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лист измерений (Эмульсия по ГОСТ 58952.1-2020)</title>
     
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        h2 {
-            color: #555;
-            margin-top: 30px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            font-size: 18px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        
-        input[type="number"], input[type="text"], input[type="date"], select {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            box-sizing: border-box;
-            height: 35px;
-        }
-        
-        input[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-        
-        .info-table {
-            margin-bottom: 30px;
-        }
-        
-        .info-table td:first-child {
-            text-align: left;
-            font-weight: bold;
-            width: 30%;
-            background-color: #f8f9fa;
-        }
-        
-        .info-table input {
-            text-align: left;
-            padding-left: 10px;
-        }
-        
-        .btn-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .btn-save {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        
-        .section-footer {
-            text-align: right;
-            font-style: italic;
-            margin-top: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Убираем стрелки в числовых полях */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        
-        .input-alert {
-            background-color: #ffcccc !important;
-        }
-        
-        .cylinder-table {
-            display: inline-table;
-            width: 48%;
-            margin-right: 2%;
-        }
-        
-        /* Стиль для диагностической информации */
-        .debug-info {
-            background: #f0f8ff;
-            border: 1px solid #007bff;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 12px;
-            display: none; /* По умолчанию скрыто */
-        }
-        
-        .debug-info.show {
-            display: block;
-        }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Modern Theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/modern-theme.css' %}">
+    <!-- Measurement Sheets CSS -->
+    <link rel="stylesheet" href="{% static 'css/measurement-sheets.css' %}">
 </head>
 <body>
-    <div class="container">
-        <h1>Лист измерений (Эмульсия {% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %} по ГОСТ 58952.1-2020)</h1>
+    <div class="measurement-container">
+        <!-- Page Header -->
+        <div class="measurement-header">
+            <h1>
+                <i class="bi bi-droplet"></i>
+                Лист измерений (Эмульсия {% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %} по ГОСТ 58952.1-2020)
+            </h1>
+            <p class="measurement-subtitle">
+                Образец № {{ sample.sample_number }} | Дата поступления: {{ sample.received_date|date:'d.m.Y' }}
+            </p>
+        </div>
         
         <!-- Диагностическая информация (скрыта по умолчанию) -->
-        <div id="debug-info" class="debug-info">
+        <div id="debug-info" class="debug-info no-print" style="display: none;">
             <strong>Диагностическая информация:</strong><br>
             Образец ID: {{ sample.id }}<br>
             Тип эмульсии: {% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %}<br>
             EmulsionTestResult ID: {% if test_result.id %}{{ test_result.id }}{% else %}Новый{% endif %}<br>
             JavaScript файл: emulsion_58952_calculations.js<br>
-            <button onclick="document.getElementById('debug-info').classList.toggle('show')">Скрыть</button>
+            <button type="button" onclick="document.getElementById('debug-info').style.display='none'" class="debug-close-btn">Скрыть</button>
         </div>
         
-        <!-- Информация об образце -->
+        <!-- Sample Info -->
         <table class="info-table">
             <tr>
-                <td>Номер:</td>
+                <td><i class="bi bi-hash"></i> Номер:</td>
                 <td><input type="text" value="{{ sample.sample_number }}" readonly></td>
             </tr>
             <tr>
-                <td>Дата отбора:</td>
+                <td><i class="bi bi-calendar-event"></i> Дата отбора:</td>
                 <td><input type="text" value="{{ sample.sampling_date|date:'d.m.Y' }}" readonly></td>
             </tr>
             <tr>
-                <td>Заказчик:</td>
+                <td><i class="bi bi-person-badge"></i> Заказчик:</td>
                 <td><input type="text" value="{{ sample.customer }}" readonly></td>
             </tr>
             <tr>
-                <td>Дата поступления в лабораторию:</td>
+                <td><i class="bi bi-calendar-check"></i> Дата поступления в лабораторию:</td>
                 <td><input type="text" value="{{ sample.received_date|date:'d.m.Y' }}" readonly></td>
             </tr>
             <tr>
-                <td>Наименование материала:</td>
+                <td><i class="bi bi-box-seam"></i> Наименование материала:</td>
                 <td><input type="text" value="Эмульсия" readonly></td>
             </tr>
             <tr>
-                <td>Поставщик материала:</td>
+                <td><i class="bi bi-truck"></i> Поставщик материала:</td>
                 <td><input type="text" value="{{ sample.supplier }}" readonly></td>
             </tr>
             <tr>
-                <td>Наименование смеси:</td>
+                <td><i class="bi bi-layers"></i> Наименование смеси:</td>
                 <td><input type="text" value="{% if sample.mix %}{{ sample.mix.name }}{% else %}ЭБДК В{% endif %}" readonly></td>
             </tr>
             <tr>
-                <td>Наименование объекта:</td>
+                <td><i class="bi bi-building"></i> Наименование объекта:</td>
                 <td><input type="text" value="{{ sample.object_name }}" readonly></td>
             </tr>
         </table>
@@ -209,14 +82,17 @@
             <input type="hidden" id="current-apply-area" value="{{ test_result.apply_area|default:0 }}">
             
             <!-- ОБЛАСТЬ ПРИМЕНЕНИЯ -->
-            <h2>Область применения</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-geo-alt"></i>
+                Область применения
+            </h2>
+            <table class="data-table">
                 <tbody>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Специальные области применения</td>
+                        <td style="width: 50%;">Специальные области применения</td>
                         <td>
-                            <select name="apply_area" id="apply_area">
-                                <!-- Опции будут заполнены через JavaScript в зависимости от типа эмульсии -->
+                            <select name="apply_area" id="apply_area" class="form-select-custom">
+                                <!-- Опции будут заполнены через JavaScript -->
                             </select>
                         </td>
                     </tr>
@@ -234,29 +110,32 @@
             <input type="hidden" id="resistance_after7_max" value="1.0">
             
             <!-- ИНДЕКС РАСПАДА -->
-            <h2>Индекс распада</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-water"></i>
+                Индекс распада
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Параметр</th>
+                        <th style="width: 50%;">Параметр</th>
                         <th>Значение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Масса чаши со шпателем, г</td>
+                        <td>Масса чаши со шпателем, г</td>
                         <td><input type="number" step="0.01" name="decay_index_w1" id="decay_index_w1" value="{{ test_result.decay_index_w1|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса чаши со шпателем и с эмульсией, г</td>
+                        <td>Масса чаши со шпателем и с эмульсией, г</td>
                         <td><input type="number" step="0.01" name="decay_index_w2" id="decay_index_w2" value="{{ test_result.decay_index_w2|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса чаши со шпателем, эмульсией и кварцевым песком, г</td>
+                        <td>Масса чаши со шпателем, эмульсией и кварцевым песком, г</td>
                         <td><input type="number" step="0.01" name="decay_index_w3" id="decay_index_w3" value="{{ test_result.decay_index_w3|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Индекс распада</td>
+                        <td style="font-weight: bold;">Индекс распада</td>
                         <td><input type="number" step="0.01" name="decay_index_value" id="decay_index_value" value="{{ test_result.decay_index_value|format_float }}" readonly></td>
                     </tr>
                 </tbody>
@@ -264,29 +143,32 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- СОДЕРЖАНИЕ ВЯЖУЩЕГО С ЭМУЛЬГАТОРОМ -->
-            <h2>Содержание вяжущего с эмульгатором</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-percent"></i>
+                Содержание вяжущего с эмульгатором
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Параметр</th>
+                        <th style="width: 50%;">Параметр</th>
                         <th>Значение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Масса чаши, г</td>
+                        <td>Масса чаши, г</td>
                         <td><input type="number" step="0.01" name="binder_content_w1" id="binder_content_w1" value="{{ test_result.binder_content_w1|format_float }}" onchange="if(window.emulsionCalculations) { window.emulsionCalculations.calculateBinderContent(); }"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td>Масса эмульсии, г</td>
                         <td><input type="number" step="0.01" name="binder_content_w2" id="binder_content_w2" value="{{ test_result.binder_content_w2|format_float }}" onchange="if(window.emulsionCalculations) { window.emulsionCalculations.calculateBinderContent(); }"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса чаши с эмульсией после выпаривания, г</td>
+                        <td>Масса чаши с эмульсией после выпаривания, г</td>
                         <td><input type="number" step="0.01" name="binder_content_w3" id="binder_content_w3" value="{{ test_result.binder_content_w3|format_float }}" onchange="if(window.emulsionCalculations) { window.emulsionCalculations.calculateBinderContent(); }"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Содержание вяжущего с эмульгатором, %</td>
+                        <td style="font-weight: bold;">Содержание вяжущего с эмульгатором, %</td>
                         <td><input type="number" step="0.01" name="binder_content_value" id="binder_content_value" value="{{ test_result.binder_content_value|format_float }}" readonly></td>
                     </tr>
                 </tbody>
@@ -294,37 +176,40 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ОСТАТОК НА СИТЕ 0,14 -->
-            <h2>Остаток на сите 0,14</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-funnel"></i>
+                Остаток на сите 0,14
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Параметр</th>
+                        <th style="width: 50%;">Параметр</th>
                         <th>Значение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Масса сита 0,14, г</td>
-                        <td><input type="number" step="0.01" name="remaining_w1" id="remaining_w1" value="{{ test_result.remaining_w1|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining(); else console.error('Функция расчета не найдена');"></td>
+                        <td>Масса сита 0,14, г</td>
+                        <td><input type="number" step="0.01" name="remaining_w1" id="remaining_w1" value="{{ test_result.remaining_w1|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining();"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса стеклянного стакана, г</td>
+                        <td>Масса стеклянного стакана, г</td>
                         <td><input type="number" step="0.01" name="remaining_w2" id="remaining_w2" value="{{ test_result.remaining_w2|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining();"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td>Масса эмульсии, г</td>
                         <td><input type="number" step="0.01" name="remaining_w3" id="remaining_w3" value="{{ test_result.remaining_w3|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining();"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса стакана с остатком эмульсии, г</td>
+                        <td>Масса стакана с остатком эмульсии, г</td>
                         <td><input type="number" step="0.01" name="remaining_w4" id="remaining_w4" value="{{ test_result.remaining_w4|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining();"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
+                        <td>Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
                         <td><input type="number" step="0.01" name="remaining_w5" id="remaining_w5" value="{{ test_result.remaining_w5|format_float }}" onchange="if(window.emulsionCalculations) window.emulsionCalculations.calculateRemaining();"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Остаток на сите, %</td>
+                        <td style="font-weight: bold;">Остаток на сите, %</td>
                         <td><input type="number" step="0.01" name="remaining_value" id="remaining_value" value="{{ test_result.remaining_value|format_float }}" readonly></td>
                     </tr>
                 </tbody>
@@ -332,46 +217,52 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ОСТАТОК НА СИТЕ 0,14 ПОСЛЕ 7 СУТОК -->
-            <h2>Остаток на сите 0,14 после 7 суток</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-calendar-week"></i>
+                Остаток на сите 0,14 после 7 суток
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Параметр</th>
+                        <th style="width: 50%;">Параметр</th>
                         <th>Значение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Масса сита 0,14, г</td>
+                        <td>Масса сита 0,14, г</td>
                         <td><input type="number" step="0.01" name="remaining_after7_w1" id="remaining_after7_w1" value="{{ test_result.remaining_after7_w1|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса стеклянного стакана, г</td>
+                        <td>Масса стеклянного стакана, г</td>
                         <td><input type="number" step="0.01" name="remaining_after7_w2" id="remaining_after7_w2" value="{{ test_result.remaining_after7_w2|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса эмульсии, г</td>
+                        <td>Масса эмульсии, г</td>
                         <td><input type="number" step="0.01" name="remaining_after7_w3" id="remaining_after7_w3" value="{{ test_result.remaining_after7_w3|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса стакана с остатком эмульсии, г</td>
+                        <td>Масса стакана с остатком эмульсии, г</td>
                         <td><input type="number" step="0.01" name="remaining_after7_w4" id="remaining_after7_w4" value="{{ test_result.remaining_after7_w4|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
+                        <td>Масса сита 0,14 с остатком эмульсии после высушивания, г</td>
                         <td><input type="number" step="0.01" name="remaining_after7_w5" id="remaining_after7_w5" value="{{ test_result.remaining_after7_w5|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Остаток на сите, %</td>
+                        <td style="font-weight: bold;">Остаток на сите, %</td>
                         <td><input type="number" step="0.01" name="remaining_after7_value" id="remaining_after7_value" value="{{ test_result.remaining_after7_value|format_float }}" readonly></td>
                     </tr>
                 </tbody>
             </table>
             <div class="section-footer">Испытания провел(а): _____________</div>
             
-            <!-- УСТОЙЧИВОСТЬ К РАССЛОЕНИЮ ПРИ ХРАНЕНИИ 7 СУТОК -->
-            <h2>Устойчивость к расслоению при хранении 7 суток</h2>
-            <table>
+            <!-- УСТОЙЧИВОСТЬ К РАССЛОЕНИЮ -->
+            <h2 class="measurement-section-title">
+                <i class="bi bi-layers"></i>
+                Устойчивость к расслоению при хранении 7 суток
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Цилиндр</th>
@@ -381,30 +272,30 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Объем эмульсии</td>
+                        <td>Объем эмульсии</td>
                         <td><input type="number" step="0.01" name="resistance_cylinder1_volume" id="resistance_cylinder1_volume" value="{{ test_result.resistance_cylinder1_volume|format_float }}"></td>
                         <td><input type="number" step="0.01" name="resistance_cylinder2_volume" id="resistance_cylinder2_volume" value="{{ test_result.resistance_cylinder2_volume|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Отметка, до которой опустится эмульсия после 7 суток</td>
+                        <td>Отметка, до которой опустится эмульсия после 7 суток</td>
                         <td><input type="number" step="0.01" name="resistance_cylinder1_volume_after7" id="resistance_cylinder1_volume_after7" value="{{ test_result.resistance_cylinder1_volume_after7|format_float }}"></td>
                         <td><input type="number" step="0.01" name="resistance_cylinder2_volume_after7" id="resistance_cylinder2_volume_after7" value="{{ test_result.resistance_cylinder2_volume_after7|format_float }}"></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left;">Расслоение эмульсии, %</td>
+                        <td>Расслоение эмульсии, %</td>
                         <td><input type="number" step="0.01" name="resistance_cylinder1_delamination" id="resistance_cylinder1_delamination" value="{{ test_result.resistance_cylinder1_delamination|format_float }}" readonly></td>
                         <td><input type="number" step="0.01" name="resistance_cylinder2_delamination" id="resistance_cylinder2_delamination" value="{{ test_result.resistance_cylinder2_delamination|format_float }}" readonly></td>
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table class="data-table">
                 <tbody>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Устойчивость к расслоению (среднее), %</td>
+                        <td style="width: 50%; font-weight: bold;">Устойчивость к расслоению (среднее), %</td>
                         <td><input type="number" step="0.01" name="resistance_after7_value" id="resistance_after7_value" value="{{ test_result.resistance_after7_value|format_float }}" readonly></td>
                     </tr>
                     <tr>
-                        <td style="text-align: left; font-weight: bold;">Допуск, % не более</td>
+                        <td style="font-weight: bold;">Допуск, % не более</td>
                         <td><input type="number" step="0.01" name="resistance_after7_max" id="resistance_after7_max" value="{{ test_result.resistance_after7_max|default:'1.0' }}" readonly></td>
                     </tr>
                 </tbody>
@@ -412,30 +303,35 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- АДГЕЗИЯ К МИНЕРАЛЬНОМУ МАТЕРИАЛУ -->
-            <h2>Адгезия к минеральному материалу</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-adhesive"></i>
+                Адгезия к минеральному материалу
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Параметр</th>
+                        <th style="width: 50%;">Параметр</th>
                         <th>Значение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: left;">Масса эмульсии, которую надо добавить к минеральному материалу, г</td>
+                        <td>Масса эмульсии, которую надо добавить к минеральному материалу, г</td>
                         <td>
                             <input type="number" step="0.01" name="mineral_material_adhesion" id="mineral_material_adhesion" value="{{ test_result.mineral_material_adhesion|format_float }}" readonly>
-                            <button type="button" onclick="if(window.emulsionCalculations) { window.emulsionCalculations.calculateMineralMaterialAdhesion(); } else { alert('Функция расчета не загружена'); }" style="margin-left: 5px; padding: 2px 8px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">Пересчитать</button>
+                            <button type="button" onclick="if(window.emulsionCalculations) { window.emulsionCalculations.calculateMineralMaterialAdhesion(); }" class="btn-calculate">
+                                <i class="bi bi-calculator"></i> Пересчитать
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Характеристика пленки битумного вяжущего</th>
                         <th>
-                            <select name="visual_quality" id="visual_quality">
+                            <select name="visual_quality" id="visual_quality" class="form-select-custom">
                                 <option value="1" {% if test_result.visual_quality == 1 %}selected{% endif %}>Хорошо</option>
                                 <option value="2" {% if test_result.visual_quality == 2 %}selected{% endif %}>Удовлетворительно</option>
                                 <option value="3" {% if test_result.visual_quality == 3 %}selected{% endif %}>Неудовлетворительно</option>
@@ -460,17 +356,28 @@
             </table>
             <div class="section-footer">Испытания провел(а): _____________</div>
             
+            <!-- Buttons -->
             <div class="btn-container">
-                <button type="submit" class="btn-save">Сохранить</button>
-                <button type="button" onclick="document.getElementById('debug-info').classList.add('show')" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Показать диагностику</button>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-save"></i>
+                    Сохранить
+                </button>
+                <a href="{% url 'sample_list' %}" class="btn-cancel">
+                    <i class="bi bi-arrow-left"></i>
+                    Вернуться к списку
+                </a>
+                <button type="button" onclick="document.getElementById('debug-info').style.display='block'" class="btn-cancel btn-debug no-print">
+                    <i class="bi bi-bug"></i>
+                    Диагностика
+                </button>
             </div>
         </form>
     </div>
     
-    <!-- Подключаем внешний JavaScript файл с правильными формулами -->
+    <!-- JavaScript для расчетов -->
     <script src="{% static 'js/emulsion_58952_calculations.js' %}"></script>
     
-    <!-- Дополнительный JavaScript для управления областями применения -->
+    <!-- JavaScript для управления областями применения -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== ИНИЦИАЛИЗАЦИЯ ФОРМЫ ЭМУЛЬСИИ ===');
@@ -571,8 +478,6 @@
                     
                     if (emulsionMass < 0) {
                         console.error('❌ ОШИБКА: Масса использованной эмульсии отрицательная!');
-                        console.error('Это означает, что масса стакана с остатком (w4=' + w4 + ') больше суммы массы стакана (w2=' + w2 + ') и эмульсии (w3=' + w3 + ')');
-                        console.error('Проверьте корректность введенных данных!');
                     }
                 }
                 console.log('=====================================');

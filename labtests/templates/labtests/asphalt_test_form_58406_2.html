@@ -6,160 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лист измерений (Асфальтобетон по {{ sample.gost.number }})</title>
     
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        h2 {
-            color: #555;
-            margin-top: 30px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            font-size: 18px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        
-        input[type="number"], input[type="text"], input.number-input {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            box-sizing: border-box;
-            height: 35px;
-            color: #000 !important;
-            -webkit-text-fill-color: #000 !important;
-            opacity: 1 !important;
-        }
-        
-        input.number-input {
-            -moz-appearance: textfield;
-        }
-        
-        input[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-            color: #000 !important;
-            -webkit-text-fill-color: #000 !important;
-            opacity: 1 !important;
-        }
-        
-        .input-alert {
-            background-color: #ffcccc !important;
-            border-color: #ff0000 !important;
-        }
-        
-        .info-table {
-            margin-bottom: 30px;
-        }
-        
-        .info-table td:first-child {
-            text-align: left;
-            font-weight: bold;
-            width: 30%;
-            background-color: #f8f9fa;
-        }
-        
-        .info-table input {
-            text-align: left;
-            padding-left: 10px;
-        }
-        
-        .btn-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .btn-save {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        
-        .btn-cancel {
-            background-color: #6c757d;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-cancel:hover {
-            background-color: #5a6268;
-        }
-        
-        .section-footer {
-            text-align: right;
-            font-style: italic;
-            margin-top: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Убираем стрелки в числовых полях */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Modern Theme -->
+    <link rel="stylesheet" href="{% static 'css/modern-theme.css' %}">
+    <!-- Measurement Sheets -->
+    <link rel="stylesheet" href="{% static 'css/measurement-sheets.css' %}">
 </head>
 <body>
-    <div class="container">
-        <h1>Лист измерений (Асфальтобетон по {{ sample.gost.number }})</h1>
+    <div class="measurement-container">
+        <!-- Заголовок страницы -->
+        <div class="measurement-header">
+            <h1>
+                <i class="bi bi-clipboard-data"></i>
+                Лист измерений (Асфальтобетон по {{ sample.gost.number }})
+            </h1>
+            <p class="measurement-subtitle">
+                Образец № {{ sample.sample_number }} | Дата: {{ sample.received_date|date:'d.m.Y' }}
+            </p>
+        </div>
         
         <!-- Информация об образце -->
         <table class="info-table">
@@ -204,8 +71,11 @@
             <input type="hidden" name="action" value="save">
             
             <!-- ИЗМЕРЕНИЯ ПЛОТНОСТИ -->
-            <h2>Измерения плотности</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-speedometer"></i>
+                Измерения плотности
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th width="20%">Параметр</th>
@@ -254,7 +124,7 @@
                 </tbody>
             </table>
             
-            <table>
+            <table class="data-table">
                 <tr>
                     <td style="width: 20%; text-align: left; font-weight: bold;">ρср</td>
                     <td><input type="number" step="0.001" name="average_density" id="average_density" value="{{ test_result.average_density|format_float }}" readonly></td>
@@ -284,8 +154,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ГРАНУЛОМЕТРИЧЕСКИЙ СОСТАВ -->
-            <h2>Гранулометрический состав асфальтобетона</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-funnel"></i>
+                Гранулометрический состав асфальтобетона
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Фракция, мм</th>
@@ -403,7 +276,10 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- МАКСИМАЛЬНАЯ ПЛОТНОСТЬ СМЕСИ -->
-            <h2>Максимальная плотность смеси</h2>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-droplet-fill"></i>
+                Максимальная плотность смеси
+            </h2>
             <table class="info-table">
                 <tr>
                     <td>Масса смеси, гр</td>
@@ -421,7 +297,10 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- СОДЕРЖАНИЕ ВЯЖУЩЕГО -->
-            <h2>Содержание вяжущего</h2>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-percent"></i>
+                Содержание вяжущего
+            </h2>
             <table class="info-table">
                 <tr>
                     <td>Масса тигеля, гр</td>
@@ -454,11 +333,15 @@
             </table>
             <div class="section-footer">Испытания провел(а): _____________</div>
             
-
-            
             <div class="btn-container">
-                <button type="submit" class="btn-save">Сохранить</button>
-                <a href="{% url 'sample_list' %}" class="btn-cancel">Вернуться к списку</a>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-save"></i>
+                    Сохранить
+                </button>
+                <a href="{% url 'sample_list' %}" class="btn-cancel">
+                    <i class="bi bi-arrow-left"></i>
+                    Вернуться к списку
+                </a>
             </div>
         </form>
     </div>

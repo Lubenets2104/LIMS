@@ -28,6 +28,19 @@
             </p>
         </div>
         
+        <!-- Debug Info (убрать на проде) -->
+        {% if debug %}
+        <div class="debug-info no-print">
+            <strong><i class="bi bi-bug"></i> Отладка:</strong><br>
+            Образец ID: {{ sample.pk }}<br>
+            test_result существует: {% if test_result %}Да{% else %}Нет{% endif %}<br>
+            {% if test_result %}
+            binder_empty_glass: {{ test_result.binder_empty_glass|default_if_none:'None' }}<br>
+            density_1_number: {{ test_result.density_1_number|default_if_none:'None' }}<br>
+            {% endif %}
+        </div>
+        {% endif %}
+        
         <!-- Success Message -->
         {% if saved_successfully %}
         <div class="success-message">

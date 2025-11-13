@@ -7,147 +7,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лист измерений (Щебень {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</title>
     
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Modern Theme -->
+    <link rel="stylesheet" href="{% static 'css/modern-theme.css' %}">
+    <!-- Measurement Sheets -->
+    <link rel="stylesheet" href="{% static 'css/measurement-sheets.css' %}">
+    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        h2 {
-            color: #555;
-            margin-top: 30px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            font-size: 18px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        
-        input[type="number"], input[type="text"], input[type="date"], select {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            box-sizing: border-box;
-            height: 35px;
-        }
-        
-        input[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-        
-        .info-table {
-            margin-bottom: 30px;
-        }
-        
-        .info-table td:first-child {
-            text-align: left;
-            font-weight: bold;
-            width: 30%;
-            background-color: #f8f9fa;
-        }
-        
-        .info-table input {
-            text-align: left;
-            padding-left: 10px;
-        }
-        
-        .btn-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .btn-save {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        
-        .section-footer {
-            text-align: right;
-            font-style: italic;
-            margin-top: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Убираем стрелки в числовых полях */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        
         .gost-requirements {
-            background-color: #f0f8ff;
+            background-color: rgba(0, 173, 181, 0.1);
             font-size: 0.9em;
         }
         
-        .note-row td {
-            text-align: left;
-            font-style: italic;
-            color: #666;
-            padding: 10px;
-        }
-        
         .fraction-title {
-            background-color: #e8f4f8;
+            background-color: rgba(0, 173, 181, 0.2);
             font-weight: bold;
             padding: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Лист измерений (Щебень {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</h1>
+    <div class="measurement-container">
+        <!-- Заголовок страницы -->
+        <div class="measurement-header">
+            <h1>
+                <i class="bi bi-gem"></i>
+                Лист измерений (Щебень {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})
+            </h1>
+            <p class="measurement-subtitle">
+                Образец № {{ sample.sample_number }} | Дата: {{ sample.received_date|date:'d.m.Y' }}
+            </p>
+        </div>
         
         <!-- Информация об образце -->
         <table class="info-table">
@@ -191,8 +84,11 @@
             <input type="hidden" name="fraction_type" id="fraction_type" value="{{ test_result.fraction_type }}">
             
             <!-- СОДЕРЖАНИЕ ПЫЛЕВИДНЫХ И ГЛИНИСТЫХ ЧАСТИЦ -->
-            <h2>Содержание пылевидных и глинистых частиц</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-cloud-drizzle"></i>
+                Содержание пылевидных и глинистых частиц
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -217,8 +113,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ГРАНУЛОМЕТРИЧЕСКИЙ СОСТАВ -->
-            <h2>Гранулометрический состав</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-funnel"></i>
+                Гранулометрический состав
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -234,7 +133,7 @@
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Размеры отверстий контрольных сит, мм</th>
@@ -273,8 +172,8 @@
                 </tbody>
             </table>
             
-            <!-- Требования ГОСТ для основных фракций -->
-            <table class="gost-requirements">
+            <!-- Требования ГОСТ -->
+            <table class="data-table gost-requirements">
                 <thead>
                     <tr>
                         <th colspan="9">Требования ГОСТ 8267-93 к полным остаткам на контрольных ситах</th>
@@ -330,9 +229,12 @@
             </table>
             <div class="section-footer">Испытания провел(а): _____________</div>
             
-            <!-- СОДЕРЖАНИЕ ЗЕРЕН ПЛАСТИНЧАТОЙ (ЛЕЩАДНОЙ) И ИГЛОВАТОЙ ФОРМЫ -->
-            <h2>Содержание зерен пластинчатой (лещадной) и игловатой формы</h2>
-            <table>
+            <!-- ЛЕЩАДНОСТЬ -->
+            <h2 class="measurement-section-title">
+                <i class="bi bi-triangle"></i>
+                Содержание зерен пластинчатой (лещадной) и игловатой формы
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -361,8 +263,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ДРОБИМОСТЬ -->
-            <h2>Дробимость</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-hammer"></i>
+                Дробимость
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -401,8 +306,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- НАСЫПНАЯ ПЛОТНОСТЬ -->
-            <h2>Насыпная плотность</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-speedometer"></i>
+                Насыпная плотность
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -439,8 +347,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- СОДЕРЖАНИЕ ЗЕРЕН СЛАБЫХ ПОРОД -->
-            <h2>Содержание зерен слабых пород</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-exclamation-triangle"></i>
+                Содержание зерен слабых пород
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -465,8 +376,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- СОДЕРЖАНИЕ ГЛИНЫ В КОМКАХ -->
-            <h2>Содержание глины в комках</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-droplet"></i>
+                Содержание глины в комках
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -491,8 +405,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- СРЕДНЯЯ ПЛОТНОСТЬ -->
-            <h2>Средняя плотность</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-speedometer2"></i>
+                Средняя плотность
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -525,7 +442,10 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <div class="btn-container">
-                <button type="submit" class="btn-save">Сохранить</button>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-save"></i>
+                    Сохранить
+                </button>
             </div>
         </form>
     </div>

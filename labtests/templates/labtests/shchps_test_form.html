@@ -7,134 +7,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лист измерений (ЩПС {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</title>
     
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        h2 {
-            color: #555;
-            margin-top: 30px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            font-size: 18px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        
-        input[type="number"], input[type="text"], input[type="date"] {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            box-sizing: border-box;
-            height: 35px;
-        }
-        
-        input[readonly] {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
-        
-        .input-alert {
-            background-color: #ffcccc !important;
-            border-color: #ff0000 !important;
-        }
-        
-        .info-table {
-            margin-bottom: 30px;
-        }
-        
-        .info-table td:first-child {
-            text-align: left;
-            font-weight: bold;
-            width: 30%;
-            background-color: #f8f9fa;
-        }
-        
-        .info-table input {
-            text-align: left;
-            padding-left: 10px;
-        }
-        
-        .btn-container {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .btn-save {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 40px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        
-        .section-footer {
-            text-align: right;
-            font-style: italic;
-            margin-top: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        /* Убираем стрелки в числовых полях */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-    </style>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Modern Theme -->
+    <link rel="stylesheet" href="{% static 'css/modern-theme.css' %}">
+    <!-- Measurement Sheets -->
+    <link rel="stylesheet" href="{% static 'css/measurement-sheets.css' %}">
 </head>
 <body>
-    <div class="container">
-        <h1>Лист измерений (ЩПС {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})</h1>
+    <div class="measurement-container">
+        <!-- Заголовок страницы -->
+        <div class="measurement-header">
+            <h1>
+                <i class="bi bi-gem"></i>
+                Лист измерений (ЩПС {{ sample.mix.name }} по ГОСТ {{ sample.gost.number }})
+            </h1>
+            <p class="measurement-subtitle">
+                Образец № {{ sample.sample_number }} | Дата: {{ sample.received_date|date:'d.m.Y' }}
+            </p>
+        </div>
         
         <!-- Информация об образце -->
         <table class="info-table">
@@ -177,8 +70,11 @@
             <input type="hidden" name="action" value="save">
             
             <!-- СОДЕРЖАНИЕ ПЫЛЕВИДНЫХ И ГЛИНИСТЫХ ЧАСТИЦ -->
-            <h2>Содержание пылевидных и глинистых частиц</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-cloud-drizzle"></i>
+                Содержание пылевидных и глинистых частиц
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Параметр</th>
@@ -203,8 +99,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ЗЕРНОВОЙ СОСТАВ СМЕСИ -->
-            <h2>Зерновой состав смеси</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-funnel"></i>
+                Зерновой состав смеси
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Сито, мм</th>
@@ -268,8 +167,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ДРОБИМОСТЬ -->
-            <h2>Дробимость</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-hammer"></i>
+                Дробимость
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Фракция щебня</th>
@@ -303,7 +205,7 @@
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table class="data-table">
                 <tr>
                     <td style="text-align: left; font-weight: bold; width: 50%;">Суммарная дробимость</td>
                     <td><input type="number" step="0.1" name="fragility_summary" id="fragility_summary" value="{{ test_result.fragility_summary|format_float }}" readonly></td>
@@ -312,8 +214,11 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <!-- ЛЕЩАДНОСТЬ -->
-            <h2>Лещадность</h2>
-            <table>
+            <h2 class="measurement-section-title">
+                <i class="bi bi-triangle"></i>
+                Лещадность
+            </h2>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Фракция щебня</th>
@@ -347,7 +252,7 @@
                     </tr>
                 </tbody>
             </table>
-            <table>
+            <table class="data-table">
                 <tr>
                     <td style="text-align: left; font-weight: bold; width: 50%;">Суммарная лещадность</td>
                     <td><input type="number" step="0.1" name="flakiness_summary" id="flakiness_summary" value="{{ test_result.flakiness_summary|format_float }}" readonly></td>
@@ -356,7 +261,10 @@
             <div class="section-footer">Испытания провел(а): _____________</div>
             
             <div class="btn-container">
-                <button type="submit" class="btn-save">Сохранить</button>
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-save"></i>
+                    Сохранить
+                </button>
             </div>
         </form>
     </div>
