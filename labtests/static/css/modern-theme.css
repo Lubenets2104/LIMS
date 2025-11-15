@@ -280,6 +280,12 @@ h3 {
     padding: 1rem;
     vertical-align: middle;
     border-bottom: 1px solid var(--border-color);
+    color: var(--light-text) !important; /* Принудительно белый цвет */
+}
+
+/* Все элементы внутри ячеек таблицы тоже должны быть белыми */
+.table tbody td *:not(.badge):not(.btn) {
+    color: var(--light-text) !important;
 }
 
 .table tbody tr {
